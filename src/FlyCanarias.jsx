@@ -1880,6 +1880,45 @@ function PaymentMethodsScreen({ onBack }) {
   );
 }
 
+/* ─── PERFIL: notificaciones ─── */
+const NOTIF_DEFS = [
+  { key: "flightChanges", label: "Cambios en mi vuelo", desc: "Avisos de horario, puerta o cancelación" },
+  { key: "reminder24h", label: "Recordatorio 24h antes", desc: "Aviso el día antes de volar" },
+  { key: "promos", label: "Ofertas y promociones", desc: "Descuentos y ofertas especiales" },
+  { key: "checkinReady", label: "Check-in disponible", desc: "Cuando se abre el check-in online" },
+  { key: "liveStatus", label: "Estado del vuelo en tiempo real", desc: "Seguimiento en vivo del vuelo" },
+];
+const DEFAULT_NOTIFS = Object.fromEntries(NOTIF_DEFS.map((n) => [n.key, true]));
+
+function NotificationsScreen({ onBack }) {
+  const C = useTheme();
+  const [notifs, setNotifs] = useState(() => loadLS(LS_KEYS.notifications, DEFAULT_NOTIFS));
+  useEffect(() => { saveLS(LS_KEYS.notifications, notifs); }, [notifs]);
+  const toggle = (key) => setNotifs((prev) => ({ ...prev, [key]: !prev[key] }));
+
+  return (
+    <div style={{ paddingBottom: 100 }}>
+      <SubHeader title="Notificaciones" onBack={onBack} />
+      <div style={{ padding: 20 }}>
+        <div style={{ background: C.surface, borderRadius: 18, boxShadow: C.shadowSm, overflow: "hidden" }}>
+          {NOTIF_DEFS.map((n, i) => (
+            <div
+              key={n.key}
+              style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, padding: "16px 18px", minHeight: 44, borderBottom: i < NOTIF_DEFS.length - 1 ? `1px solid ${C.border}` : "none" }}
+            >
+              <div>
+                <div style={{ fontSize: 14, fontWeight: 600, color: C.slate }}>{n.label}</div>
+                <div style={{ fontSize: 12, color: C.slateLight }}>{n.desc}</div>
+              </div>
+              <Toggle on={!!notifs[n.key]} onChange={() => toggle(n.key)} />
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function Splash() {
   const C = useTheme();
   return (
