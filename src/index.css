@@ -43,3 +43,11 @@ body {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+@keyframes fcPopIn {
+  from { transform: scale(0); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+.fc-pop-in {
+  animation: fcPopIn .4s cubic-bezier(.34, 1.56, .64, 1);
+}
