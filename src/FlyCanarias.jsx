@@ -30,41 +30,41 @@ import {
   LogOut,
   HelpCircle,
   Phone,
+  ClipboardCheck,
+  Activity,
 } from "lucide-react";
 
-/* ─── palette & tokens ─── */
+/* ─── palette & tokens (marca FlyCanarias, estilo Binter) ─── */
 const C = {
-  green: "#004D35",
-  greenMid: "#0A6449",
-  greenLight: "#12805B",
-  greenPale: "#E7F1EC",
-  greenDark: "#00301F",
-  gold: "#C9A24B",
-  goldPale: "#FBF3E1",
-  sand: "#F3F1EB",
+  green: "#00833E",
+  greenMid: "#00A651",
+  greenLight: "#00A651",
+  greenPale: "#E6F5EC",
+  greenDark: "#005C2C",
+  yellow: "#FFD100",
+  yellowPale: "#FFF6CC",
+  gold: "#FFD100",
+  goldPale: "#FFF6CC",
+  sand: "#F8F8F8",
   coral: "#E1584A",
   coralPale: "#FDEEEC",
-  slate: "#16241D",
-  slateLight: "#5B6B63",
-  slatePale: "#98A79E",
+  slate: "#1A1A1A",
+  slateLight: "#5C5C5C",
+  slatePale: "#8A8A8A",
   white: "#FFFFFF",
-  border: "#E7E4D9",
-  bg: "#F3F1EB",
-  shadowSm: "0 2px 10px rgba(0,25,15,.06)",
-  shadowMd: "0 10px 28px rgba(0,25,15,.09)",
-  shadowLg: "0 20px 48px rgba(0,25,15,.16)",
+  border: "#E5E5E5",
+  bg: "#F8F8F8",
+  shadowSm: "0 2px 10px rgba(0,0,0,.06)",
+  shadowMd: "0 10px 28px rgba(0,0,0,.09)",
+  shadowLg: "0 20px 48px rgba(0,0,0,.16)",
 };
 
 /* ─── real Canary Islands photography (Unsplash) ─── */
 const UNSPLASH = {
-  Tenerife:
-    "https://images.unsplash.com/photo-1697471514416-399d7b766f34?auto=format&fit=crop&w=900&q=80",
-  "La Palma":
-    "https://plus.unsplash.com/premium_photo-1669227514061-8bf66a66304a?auto=format&fit=crop&w=900&q=80",
-  "Gran Canaria":
-    "https://images.unsplash.com/photo-1638874896031-ca4bdb7c2f15?auto=format&fit=crop&w=900&q=80",
-  "El Hierro":
-    "https://plus.unsplash.com/premium_photo-1702598649913-3266e9289735?auto=format&fit=crop&w=900&q=80",
+  Tenerife: "https://images.unsplash.com/photo-1555990793-da11153b2473?w=400",
+  "Gran Canaria": "https://images.unsplash.com/photo-1573946475837-c5280f4e2f6b?w=400",
+  "La Palma": "https://images.unsplash.com/photo-1564518096949-e7c8e3b6e98a?w=400",
+  Lanzarote: "https://images.unsplash.com/photo-1578894381163-e72c17f2d45f?w=400",
 };
 
 /* ─── data ─── */
@@ -91,9 +91,9 @@ const FLIGHTS = [
 
 const PROMOS = [
   { dest: "Tenerife", price: 29, tagline: "Escápate al Teide" },
-  { dest: "La Palma", price: 35, tagline: "Isla Bonita te espera" },
   { dest: "Gran Canaria", price: 25, tagline: "Dunas de Maspalomas" },
-  { dest: "El Hierro", price: 45, tagline: "El fin del mundo conocido" },
+  { dest: "La Palma", price: 35, tagline: "Isla Bonita te espera" },
+  { dest: "Lanzarote", price: 32, tagline: "Paisajes volcánicos" },
 ];
 
 const INITIAL_BOOKINGS = [
@@ -118,6 +118,80 @@ const qrUrl = (data) =>
 const initials = (email) => (email ? email.slice(0, 2).toUpperCase() : "FC");
 const formatBookingDate = (d) =>
   d.toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "numeric" }).replace(".", "");
+
+/* ─── shared style helpers ─── */
+const sectionTitle = {
+  fontSize: 16,
+  fontWeight: 900,
+  textTransform: "uppercase",
+  color: C.slate,
+  marginBottom: 14,
+  letterSpacing: -0.2,
+};
+const priceStrong = { fontWeight: 900, color: C.green };
+const badgeYellow = {
+  display: "inline-block",
+  background: C.yellow,
+  color: C.slate,
+  fontSize: 11,
+  fontWeight: 700,
+  textTransform: "uppercase",
+  letterSpacing: 0.3,
+  padding: "5px 10px",
+  borderRadius: 6,
+};
+
+/* ─── shared white top header (logo + bell + avatar) ─── */
+function TopHeader({ onNav, userEmail }) {
+  return (
+    <div
+      style={{
+        background: C.white,
+        padding: "16px 20px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        borderBottom: `1px solid ${C.border}`,
+        position: "sticky",
+        top: 0,
+        zIndex: 10,
+      }}
+    >
+      <div style={{ fontSize: 20, fontWeight: 900, letterSpacing: -0.3 }}>
+        <span style={{ color: C.slate }}>Fly</span>
+        <span style={{ color: C.green }}>Canarias</span>
+      </div>
+      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <button
+          aria-label="Notificaciones"
+          style={{ background: "none", border: "none", cursor: "pointer", color: C.slate, padding: 6, display: "flex" }}
+        >
+          <Bell size={22} />
+        </button>
+        <button
+          onClick={() => onNav("profile")}
+          aria-label="Perfil"
+          style={{
+            width: 36,
+            height: 36,
+            borderRadius: "50%",
+            background: C.green,
+            color: C.white,
+            border: "none",
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontWeight: 800,
+            fontSize: 13,
+          }}
+        >
+          {initials(userEmail)}
+        </button>
+      </div>
+    </div>
+  );
+}
 
 /* ─── AUTH SCREEN (integrated) ─── */
 function AuthScreen({ onClose }) {
@@ -179,7 +253,7 @@ function AuthScreen({ onClose }) {
         minHeight: "100dvh",
         display: "flex",
         flexDirection: "column",
-        background: `linear-gradient(165deg, ${C.green} 0%, ${C.greenDark} 55%, ${C.slate} 100%)`,
+        background: C.green,
         maxWidth: 480,
         margin: "0 auto",
       }}
@@ -189,7 +263,7 @@ function AuthScreen({ onClose }) {
           <button
             onClick={onClose}
             aria-label="Volver sin iniciar sesión"
-            style={{ position: "absolute", top: 20, left: 20, background: "rgba(255,255,255,.14)", border: "none", borderRadius: 10, padding: 8, cursor: "pointer", color: C.white, display: "flex" }}
+            style={{ position: "absolute", top: 20, left: 20, background: "rgba(255,255,255,.16)", border: "none", borderRadius: 10, padding: 8, cursor: "pointer", color: C.white, display: "flex" }}
           >
             <X size={20} />
           </button>
@@ -199,10 +273,7 @@ function AuthScreen({ onClose }) {
             width: 72,
             height: 72,
             borderRadius: 20,
-            background: "rgba(255,255,255,.12)",
-            backdropFilter: "blur(10px)",
-            WebkitBackdropFilter: "blur(10px)",
-            border: "1px solid rgba(255,255,255,.18)",
+            background: "rgba(255,255,255,.14)",
             display: "inline-flex",
             alignItems: "center",
             justifyContent: "center",
@@ -211,8 +282,8 @@ function AuthScreen({ onClose }) {
         >
           <Plane size={34} />
         </div>
-        <h1 style={{ fontSize: 28, fontWeight: 800, margin: "0 0 6px", letterSpacing: -0.5 }}>FlyCanarias</h1>
-        <p style={{ fontSize: 15, opacity: 0.75, margin: 0 }}>Vuelos interislas al mejor precio</p>
+        <h1 style={{ fontSize: 26, fontWeight: 900, margin: "0 0 6px", textTransform: "uppercase", letterSpacing: -0.3 }}>FlyCanarias</h1>
+        <p style={{ fontSize: 15, opacity: 0.85, margin: 0 }}>Vuelos interislas al mejor precio</p>
       </div>
 
       <div
@@ -384,7 +455,7 @@ function AuthScreen({ onClose }) {
   );
 }
 
-/* ─── bottom nav (blurred, floating) ─── */
+/* ─── bottom nav (white, floating) ─── */
 function BottomNav({ active, onNav }) {
   const tabs = [
     { id: "home", icon: Home, label: "Inicio" },
@@ -409,15 +480,13 @@ function BottomNav({ active, onNav }) {
         style={{
           width: "100%",
           maxWidth: 480,
-          background: "rgba(255,255,255,.78)",
-          backdropFilter: "blur(20px) saturate(180%)",
-          WebkitBackdropFilter: "blur(20px) saturate(180%)",
-          borderTop: "1px solid rgba(0,20,12,.08)",
+          background: C.white,
+          borderTop: `1px solid ${C.border}`,
           display: "flex",
           justifyContent: "space-around",
           padding: "10px 0 calc(10px + env(safe-area-inset-bottom, 0px))",
           pointerEvents: "auto",
-          boxShadow: "0 -8px 24px rgba(0,20,12,.06)",
+          boxShadow: "0 -8px 24px rgba(0,0,0,.06)",
         }}
       >
         {tabs.map((t) => {
@@ -457,7 +526,7 @@ function AirportPicker({ open, onSelect, onClose, title }) {
   if (!open) return null;
   return (
     <div
-      style={{ position: "fixed", inset: 0, background: "rgba(0,20,12,.5)", zIndex: 200, display: "flex", alignItems: "flex-end", justifyContent: "center" }}
+      style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.5)", zIndex: 200, display: "flex", alignItems: "flex-end", justifyContent: "center" }}
       onClick={onClose}
     >
       <div
@@ -495,7 +564,7 @@ function HelpModal({ open, onClose }) {
   if (!open) return null;
   return (
     <div
-      style={{ position: "fixed", inset: 0, background: "rgba(0,20,12,.5)", zIndex: 200, display: "flex", alignItems: "flex-end", justifyContent: "center" }}
+      style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.5)", zIndex: 200, display: "flex", alignItems: "flex-end", justifyContent: "center" }}
       onClick={onClose}
     >
       <div
@@ -537,42 +606,70 @@ function HelpModal({ open, onClose }) {
 /* ─── SCREENS ─── */
 
 function HomeScreen({ onNav, userEmail, bookings }) {
+  const actionTabs = [
+    { id: "search", icon: Search, label: "Buscar vuelos" },
+    { id: "bookings", icon: Ticket, label: "Mis reservas" },
+    { id: "checkin", icon: ClipboardCheck, label: "Check-in" },
+    { id: "status", icon: Activity, label: "Estado de vuelo" },
+  ];
+
   return (
     <div style={{ paddingBottom: 100 }}>
-      <div style={{ background: `linear-gradient(135deg, ${C.green} 0%, ${C.greenMid} 100%)`, padding: "48px 20px 40px", color: C.white }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
-          <div>
-            <div style={{ fontSize: 14, opacity: 0.8, marginBottom: 2 }}>Bienvenido de nuevo</div>
-            <div style={{ fontSize: 20, fontWeight: 700 }}>{userEmail?.split("@")[0] || "Viajero"} ✈️</div>
-          </div>
-          <button style={{ background: "rgba(255,255,255,.14)", border: "1px solid rgba(255,255,255,.14)", borderRadius: 12, padding: 10, cursor: "pointer", color: C.white }}>
-            <Bell size={20} />
-          </button>
-        </div>
+      <TopHeader onNav={onNav} userEmail={userEmail} />
 
-        <div style={{ background: C.white, borderRadius: 18, padding: 20, color: C.slate, boxShadow: C.shadowLg }}>
-          <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 14 }}>¿A dónde volamos?</div>
-          <button
-            onClick={() => onNav("search")}
-            style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "14px 16px", background: C.bg, border: `1px solid ${C.border}`, borderRadius: 12, cursor: "pointer", color: C.slatePale, fontSize: 15 }}
-          >
-            <Search size={18} />
-            Buscar vuelos entre islas
-          </button>
+      {/* HERO */}
+      <div style={{ background: C.green, padding: "28px 20px 64px", position: "relative", overflow: "hidden" }}>
+        <Plane
+          size={230}
+          style={{ position: "absolute", top: -40, right: -60, color: "rgba(255,255,255,.14)", transform: "rotate(35deg)" }}
+        />
+        <div style={{ position: "relative", zIndex: 1 }}>
+          <div style={{ fontSize: 13, color: "rgba(255,255,255,.85)", marginBottom: 8 }}>
+            {userEmail ? `Bienvenido, ${userEmail.split("@")[0]}` : "Bienvenido"}
+          </div>
+          <h1 style={{ margin: 0, fontSize: 36, fontWeight: 900, color: C.white, textTransform: "uppercase", lineHeight: 1.05, letterSpacing: -0.5 }}>
+            Vuela entre islas
+          </h1>
         </div>
       </div>
 
+      {/* floating price card */}
+      <div style={{ padding: "0 20px", marginTop: -48, position: "relative", zIndex: 2 }}>
+        <div
+          onClick={() => onNav("search")}
+          style={{ background: C.white, borderRadius: 18, padding: 20, boxShadow: C.shadowLg, cursor: "pointer" }}
+        >
+          <span style={badgeYellow}>Canariazo</span>
+          <div style={{ fontSize: 14, color: C.slateLight, marginTop: 10, marginBottom: 2 }}>Vuelos ida desde</div>
+          <div style={{ fontSize: 32, ...priceStrong }}>27€</div>
+        </div>
+      </div>
+
+      {/* action tabs */}
+      <div style={{ padding: "20px 20px 0", display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8 }}>
+        {actionTabs.map((t) => (
+          <button
+            key={t.id}
+            onClick={() => onNav(t.id)}
+            style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, background: C.white, border: `1px solid ${C.border}`, borderRadius: 14, padding: "14px 4px", cursor: "pointer", boxShadow: C.shadowSm }}
+          >
+            <t.icon size={20} color={C.green} />
+            <span style={{ fontSize: 11, fontWeight: 700, color: C.slate, textAlign: "center", lineHeight: 1.2 }}>{t.label}</span>
+          </button>
+        ))}
+      </div>
+
       {bookings.length > 0 && (
-        <div style={{ padding: "20px 20px 0" }}>
-          <div style={{ fontSize: 16, fontWeight: 700, color: C.slate, marginBottom: 12 }}>Tu próximo vuelo</div>
+        <div style={{ padding: "24px 20px 0" }}>
+          <div style={sectionTitle}>Tu próximo vuelo</div>
           <div style={{ background: C.white, borderRadius: 18, padding: 18, boxShadow: C.shadowSm, cursor: "pointer" }} onClick={() => onNav("bookings")}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-              <span style={{ fontSize: 12, fontWeight: 700, color: C.green, background: C.greenPale, padding: "4px 10px", borderRadius: 20 }}>Confirmado</span>
+              <span style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", color: C.green, background: C.greenPale, padding: "4px 10px", borderRadius: 6 }}>Confirmado</span>
               <span style={{ fontSize: 13, color: C.slateLight }}>{bookings[0].date}</span>
             </div>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <div style={{ textAlign: "center" }}>
-                <div style={{ fontSize: 28, fontWeight: 800, color: C.slate }}>{bookings[0].from}</div>
+                <div style={{ fontSize: 28, fontWeight: 900, color: C.slate }}>{bookings[0].from}</div>
                 <div style={{ fontSize: 12, color: C.slateLight }}>{bookings[0].dep}</div>
               </div>
               <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", padding: "0 12px" }}>
@@ -581,7 +678,7 @@ function HomeScreen({ onNav, userEmail, bookings }) {
                 <div style={{ fontSize: 11, color: C.slatePale }}>40min</div>
               </div>
               <div style={{ textAlign: "center" }}>
-                <div style={{ fontSize: 28, fontWeight: 800, color: C.slate }}>{bookings[0].to}</div>
+                <div style={{ fontSize: 28, fontWeight: 900, color: C.slate }}>{bookings[0].to}</div>
                 <div style={{ fontSize: 12, color: C.slateLight }}>{bookings[0].arr}</div>
               </div>
             </div>
@@ -594,41 +691,37 @@ function HomeScreen({ onNav, userEmail, bookings }) {
         </div>
       )}
 
-      <div style={{ padding: "24px 20px 0" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-          <div style={{ fontSize: 16, fontWeight: 700, color: C.slate }}>Ofertas interislas</div>
-          <button style={{ background: "none", border: "none", color: C.green, fontSize: 14, fontWeight: 600, cursor: "pointer" }}>Ver todas</button>
-        </div>
-        <div style={{ display: "flex", gap: 12, overflowX: "auto", paddingBottom: 4 }}>
+      {/* DESTINOS DESTACADOS */}
+      <div style={{ padding: "28px 20px 0" }}>
+        <div style={sectionTitle}>Destinos destacados</div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
           {PROMOS.map((p, i) => (
             <div
               key={i}
               onClick={() => onNav("search")}
-              style={{ minWidth: 165, background: C.white, borderRadius: 18, overflow: "hidden", cursor: "pointer", flexShrink: 0, boxShadow: C.shadowSm }}
+              style={{ borderRadius: 18, overflow: "hidden", cursor: "pointer", position: "relative", height: 150, boxShadow: C.shadowSm }}
             >
               <div
                 style={{
-                  height: 100,
+                  position: "absolute",
+                  inset: 0,
                   backgroundImage: `url(${UNSPLASH[p.dest]})`,
                   backgroundSize: "cover",
                   backgroundPosition: "center",
-                  position: "relative",
                 }}
-              >
-                <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(0,0,0,0) 50%, rgba(0,20,12,.35) 100%)" }} />
-              </div>
-              <div style={{ padding: "12px 14px" }}>
-                <div style={{ fontWeight: 700, fontSize: 15, color: C.slate }}>{p.dest}</div>
-                <div style={{ fontSize: 12, color: C.slateLight, marginBottom: 6 }}>{p.tagline}</div>
-                <div style={{ fontSize: 16, fontWeight: 800, color: C.gold }}>Desde {p.price}€</div>
+              />
+              <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(0,0,0,0) 40%, rgba(0,0,0,.65) 100%)" }} />
+              <div style={{ position: "absolute", left: 12, right: 12, bottom: 12, color: C.white }}>
+                <div style={{ fontWeight: 800, fontSize: 15 }}>{p.dest}</div>
+                <div style={{ fontSize: 15, fontWeight: 900, color: C.yellow }}>Desde {p.price}€</div>
               </div>
             </div>
           ))}
         </div>
       </div>
 
-      <div style={{ padding: "24px 20px 0" }}>
-        <div style={{ fontSize: 16, fontWeight: 700, color: C.slate, marginBottom: 12 }}>Servicios a bordo</div>
+      <div style={{ padding: "28px 20px 0" }}>
+        <div style={sectionTitle}>Servicios a bordo</div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
           {[
             { icon: Wifi, label: "WiFi a bordo", sub: "Gratis en todos los vuelos" },
@@ -637,8 +730,8 @@ function HomeScreen({ onNav, userEmail, bookings }) {
             { icon: Shield, label: "Flex ticket", sub: "Cambios sin coste" },
           ].map((s, i) => (
             <div key={i} style={{ background: C.white, borderRadius: 16, padding: "16px 14px", boxShadow: C.shadowSm, display: "flex", gap: 10, alignItems: "flex-start" }}>
-              <div style={{ width: 36, height: 36, borderRadius: 10, background: i % 2 === 0 ? C.greenPale : C.goldPale, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                <s.icon size={18} color={i % 2 === 0 ? C.green : C.gold} />
+              <div style={{ width: 36, height: 36, borderRadius: 10, background: i % 2 === 0 ? C.greenPale : C.yellowPale, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <s.icon size={18} color={i % 2 === 0 ? C.green : "#B8940A"} />
               </div>
               <div>
                 <div style={{ fontSize: 13, fontWeight: 600, color: C.slate }}>{s.label}</div>
@@ -652,7 +745,7 @@ function HomeScreen({ onNav, userEmail, bookings }) {
   );
 }
 
-function SearchScreen({ onSelectFlight }) {
+function SearchScreen({ onNav, onSelectFlight, userEmail }) {
   const [from, setFrom] = useState("ACE");
   const [to, setTo] = useState("LPA");
   const [date, setDate] = useState(today());
@@ -672,8 +765,10 @@ function SearchScreen({ onSelectFlight }) {
 
   return (
     <div style={{ paddingBottom: 100 }}>
-      <div style={{ background: `linear-gradient(135deg, ${C.green} 0%, ${C.greenMid} 100%)`, padding: "48px 20px 28px", color: C.white }}>
-        <div style={{ fontSize: 22, fontWeight: 700, marginBottom: 20 }}>Buscar vuelos</div>
+      <TopHeader onNav={onNav} userEmail={userEmail} />
+
+      <div style={{ background: C.green, padding: "24px 20px 28px", color: C.white }}>
+        <div style={{ fontSize: 22, fontWeight: 900, textTransform: "uppercase", marginBottom: 20, letterSpacing: -0.3 }}>Buscar vuelos</div>
 
         <div style={{ background: C.white, borderRadius: 18, padding: 16, color: C.slate, boxShadow: C.shadowLg }}>
           <div style={{ display: "flex", gap: 10, marginBottom: 12 }}>
@@ -736,7 +831,7 @@ function SearchScreen({ onSelectFlight }) {
       {sorted && (
         <div style={{ padding: "20px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-            <div style={{ fontSize: 16, fontWeight: 700, color: C.slate }}>
+            <div style={{ fontSize: 16, fontWeight: 900, color: C.slate, textTransform: "uppercase" }}>
               {sorted.length} vuelo{sorted.length !== 1 ? "s" : ""} encontrado{sorted.length !== 1 ? "s" : ""}
             </div>
             <div style={{ display: "flex", gap: 6 }}>
@@ -760,12 +855,12 @@ function SearchScreen({ onSelectFlight }) {
                   <span style={{ fontSize: 13, color: C.slateLight }}>{f.aircraft}</span>
                 </div>
                 {f.seats <= 5 && (
-                  <span style={{ fontSize: 11, fontWeight: 600, color: C.coral, background: C.coralPale, padding: "3px 8px", borderRadius: 10 }}>{f.seats} plazas</span>
+                  <span style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", color: C.coral, background: C.coralPale, padding: "3px 8px", borderRadius: 6 }}>{f.seats} plazas</span>
                 )}
               </div>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                 <div>
-                  <div style={{ fontSize: 24, fontWeight: 800, color: C.slate }}>{f.dep}</div>
+                  <div style={{ fontSize: 24, fontWeight: 900, color: C.slate }}>{f.dep}</div>
                   <div style={{ fontSize: 13, color: C.slateLight }}>{f.from}</div>
                 </div>
                 <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", padding: "0 10px" }}>
@@ -775,7 +870,7 @@ function SearchScreen({ onSelectFlight }) {
                   </div>
                 </div>
                 <div style={{ textAlign: "right" }}>
-                  <div style={{ fontSize: 24, fontWeight: 800, color: C.slate }}>{f.arr}</div>
+                  <div style={{ fontSize: 24, fontWeight: 900, color: C.slate }}>{f.arr}</div>
                   <div style={{ fontSize: 13, color: C.slateLight }}>{f.to}</div>
                 </div>
               </div>
@@ -784,7 +879,7 @@ function SearchScreen({ onSelectFlight }) {
                   {[Wifi, Coffee, Luggage].map((Icon, i) => (<Icon key={i} size={16} color={C.slatePale} />))}
                 </div>
                 <div>
-                  <span style={{ fontSize: 22, fontWeight: 800, color: C.green }}>{f.price}€</span>
+                  <span style={{ fontSize: 28, ...priceStrong }}>{f.price}€</span>
                   <span style={{ fontSize: 12, color: C.slateLight }}> /persona</span>
                 </div>
               </div>
@@ -844,7 +939,7 @@ function FlightDetail({ flight, onBack, onNav, onConfirmBooking }) {
         <div style={{ width: 80, height: 80, borderRadius: "50%", background: C.greenPale, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 24 }}>
           <Check size={40} color={C.green} strokeWidth={3} />
         </div>
-        <div style={{ fontSize: 24, fontWeight: 800, color: C.slate, marginBottom: 8 }}>¡Reserva confirmada!</div>
+        <div style={{ fontSize: 22, fontWeight: 900, color: C.slate, marginBottom: 8, textTransform: "uppercase" }}>¡Reserva confirmada!</div>
         <div style={{ fontSize: 15, color: C.slateLight, marginBottom: 28, maxWidth: 280 }}>
           Tu vuelo {f.from} → {f.to} está listo. Recibirás la tarjeta de embarque por email.
         </div>
@@ -859,7 +954,7 @@ function FlightDetail({ flight, onBack, onNav, onConfirmBooking }) {
           </div>
           <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14 }}>
             <span style={{ color: C.slateLight }}>Total</span>
-            <span style={{ fontWeight: 700, color: C.green }}>{confirmation.total}€</span>
+            <span style={{ fontSize: 18, ...priceStrong }}>{confirmation.total}€</span>
           </div>
         </div>
         <button onClick={() => onNav("bookings")} style={{ padding: "16px 40px", background: C.green, color: C.white, border: "none", borderRadius: 12, fontSize: 16, fontWeight: 700, cursor: "pointer", boxShadow: C.shadowMd }}>
@@ -871,23 +966,23 @@ function FlightDetail({ flight, onBack, onNav, onConfirmBooking }) {
 
   return (
     <div style={{ paddingBottom: 110 }}>
-      <div style={{ background: `linear-gradient(135deg, ${C.green} 0%, ${C.greenMid} 100%)`, padding: "48px 20px 28px", color: C.white }}>
-        <button onClick={onBack} style={{ background: "rgba(255,255,255,.14)", border: "none", borderRadius: 10, padding: "8px 12px", cursor: "pointer", color: C.white, marginBottom: 16, display: "flex", alignItems: "center", gap: 6 }}>
+      <div style={{ background: C.green, padding: "48px 20px 28px", color: C.white }}>
+        <button onClick={onBack} style={{ background: "rgba(255,255,255,.16)", border: "none", borderRadius: 10, padding: "8px 12px", cursor: "pointer", color: C.white, marginBottom: 16, display: "flex", alignItems: "center", gap: 6 }}>
           <ArrowLeft size={16} />
           Volver
         </button>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div style={{ textAlign: "center" }}>
-            <div style={{ fontSize: 32, fontWeight: 800 }}>{f.from}</div>
-            <div style={{ fontSize: 13, opacity: 0.8 }}>{airportName(f.from)?.city}</div>
+            <div style={{ fontSize: 32, fontWeight: 900 }}>{f.from}</div>
+            <div style={{ fontSize: 13, opacity: 0.85 }}>{airportName(f.from)?.city}</div>
           </div>
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "0 8px" }}>
             <Plane size={22} />
-            <div style={{ fontSize: 12, opacity: 0.65, marginTop: 4 }}>{f.duration}</div>
+            <div style={{ fontSize: 12, opacity: 0.7, marginTop: 4 }}>{f.duration}</div>
           </div>
           <div style={{ textAlign: "center" }}>
-            <div style={{ fontSize: 32, fontWeight: 800 }}>{f.to}</div>
-            <div style={{ fontSize: 13, opacity: 0.8 }}>{airportName(f.to)?.city}</div>
+            <div style={{ fontSize: 32, fontWeight: 900 }}>{f.to}</div>
+            <div style={{ fontSize: 13, opacity: 0.85 }}>{airportName(f.to)?.city}</div>
           </div>
         </div>
       </div>
@@ -987,7 +1082,7 @@ function FlightDetail({ flight, onBack, onNav, onConfirmBooking }) {
             ))}
             <div style={{ display: "flex", justifyContent: "space-between", padding: "14px 0 0", fontSize: 16 }}>
               <span style={{ fontWeight: 700, color: C.slate }}>Total</span>
-              <span style={{ fontWeight: 800, color: C.green }}>{f.price + 12}€</span>
+              <span style={{ fontSize: 20, ...priceStrong }}>{f.price + 12}€</span>
             </div>
             <div style={{ margin: "18px 0 8px", fontSize: 14, fontWeight: 600, color: C.slate }}>Método de pago</div>
             <div style={{ display: "flex", alignItems: "center", gap: 12, padding: 14, background: C.bg, borderRadius: 12, border: `1px solid ${C.green}` }}>
@@ -1002,10 +1097,10 @@ function FlightDetail({ flight, onBack, onNav, onConfirmBooking }) {
       </div>
 
       <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, display: "flex", justifyContent: "center", zIndex: 90 }}>
-        <div style={{ width: "100%", maxWidth: 480, background: "rgba(255,255,255,.9)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", borderTop: `1px solid ${C.border}`, padding: "14px 20px calc(14px + env(safe-area-inset-bottom, 0px))", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div style={{ width: "100%", maxWidth: 480, background: "rgba(255,255,255,.95)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", borderTop: `1px solid ${C.border}`, padding: "14px 20px calc(14px + env(safe-area-inset-bottom, 0px))", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div>
             <div style={{ fontSize: 12, color: C.slateLight }}>Precio total</div>
-            <div style={{ fontSize: 22, fontWeight: 800, color: C.green }}>{f.price + 12}€</div>
+            <div style={{ fontSize: 22, ...priceStrong }}>{f.price + 12}€</div>
           </div>
           <button
             onClick={() => (step === 2 ? confirmBooking() : setStep(step + 1))}
@@ -1021,35 +1116,36 @@ function FlightDetail({ flight, onBack, onNav, onConfirmBooking }) {
   );
 }
 
-function BookingsScreen({ userEmail, bookings }) {
+function BookingsScreen({ onNav, userEmail, bookings }) {
   const [checkedIn, setCheckedIn] = useState({});
   return (
     <div style={{ paddingBottom: 100 }}>
-      <div style={{ padding: "48px 20px 20px" }}>
-        <div style={{ fontSize: 22, fontWeight: 700, color: C.slate, marginBottom: 20 }}>Mis vuelos</div>
+      <TopHeader onNav={onNav} userEmail={userEmail} />
+      <div style={{ padding: "20px 20px 0" }}>
+        <div style={sectionTitle}>Mis vuelos</div>
 
         {bookings.map((b) => (
         <div key={b.id} style={{ background: C.white, borderRadius: 22, overflow: "hidden", boxShadow: C.shadowLg, marginBottom: 16 }}>
-          <div style={{ background: `linear-gradient(135deg, ${C.green} 0%, ${C.greenMid} 100%)`, padding: "20px 20px 16px", color: C.white }}>
+          <div style={{ background: C.green, padding: "20px 20px 16px", color: C.white }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <Plane size={18} />
-                <span style={{ fontWeight: 700, fontSize: 15 }}>FlyCanarias</span>
+                <span style={{ fontWeight: 800, fontSize: 15 }}>FlyCanarias</span>
               </div>
-              <span style={{ fontSize: 13, opacity: 0.75 }}>{b.id}</span>
+              <span style={{ fontSize: 13, opacity: 0.8 }}>{b.id}</span>
             </div>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <div>
-                <div style={{ fontSize: 36, fontWeight: 800 }}>{b.from}</div>
-                <div style={{ fontSize: 13, opacity: 0.75 }}>{b.dep}</div>
+                <div style={{ fontSize: 36, fontWeight: 900 }}>{b.from}</div>
+                <div style={{ fontSize: 13, opacity: 0.8 }}>{b.dep}</div>
               </div>
               <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", padding: "0 6px" }}>
-                <div style={{ width: "80%", borderBottom: "2px dashed rgba(255,255,255,.35)" }} />
-                <Plane size={16} style={{ margin: "6px 0", opacity: 0.7 }} />
+                <div style={{ width: "80%", borderBottom: "2px dashed rgba(255,255,255,.4)" }} />
+                <Plane size={16} style={{ margin: "6px 0", opacity: 0.75 }} />
               </div>
               <div style={{ textAlign: "right" }}>
-                <div style={{ fontSize: 36, fontWeight: 800 }}>{b.to}</div>
-                <div style={{ fontSize: 13, opacity: 0.75 }}>{b.arr}</div>
+                <div style={{ fontSize: 36, fontWeight: 900 }}>{b.to}</div>
+                <div style={{ fontSize: 13, opacity: 0.8 }}>{b.arr}</div>
               </div>
             </div>
           </div>
@@ -1129,19 +1225,175 @@ function BookingsScreen({ userEmail, bookings }) {
   );
 }
 
-function ProfileScreen({ userEmail, onSignOut }) {
+function CheckinScreen({ onNav, userEmail, bookings }) {
+  const [query, setQuery] = useState("");
+  const [checkedIn, setCheckedIn] = useState({});
+  const filtered = bookings.filter((b) => !query.trim() || b.id.toLowerCase().includes(query.trim().toLowerCase()));
+
+  return (
+    <div style={{ paddingBottom: 100 }}>
+      <TopHeader onNav={onNav} userEmail={userEmail} />
+      <div style={{ padding: "20px" }}>
+        <div style={sectionTitle}>Check-in online</div>
+
+        <div style={{ background: C.white, borderRadius: 18, padding: 16, boxShadow: C.shadowSm, marginBottom: 18 }}>
+          <label style={{ fontSize: 13, fontWeight: 600, color: C.slate, display: "block", marginBottom: 8 }}>
+            Código de reserva
+          </label>
+          <input
+            type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Ej. FC-2026-4851"
+            style={{ width: "100%", border: `1px solid ${C.border}`, background: C.bg, borderRadius: 12, padding: "14px 14px", fontSize: 15, color: C.slate, outline: "none" }}
+          />
+        </div>
+
+        {filtered.length === 0 && (
+          <div style={{ background: C.white, borderRadius: 18, padding: 24, textAlign: "center", color: C.slateLight, boxShadow: C.shadowSm }}>
+            No se encontró ninguna reserva con ese código.
+          </div>
+        )}
+
+        {filtered.map((b) => (
+          <div key={b.id} style={{ background: C.white, borderRadius: 18, padding: 18, boxShadow: C.shadowSm, marginBottom: 12 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+              <span style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", color: C.green, background: C.greenPale, padding: "4px 10px", borderRadius: 6 }}>{b.id}</span>
+              <span style={{ fontSize: 13, color: C.slateLight }}>{b.date}</span>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+              <div style={{ textAlign: "center" }}>
+                <div style={{ fontSize: 26, fontWeight: 900, color: C.slate }}>{b.from}</div>
+                <div style={{ fontSize: 12, color: C.slateLight }}>{b.dep}</div>
+              </div>
+              <Plane size={18} style={{ color: C.green }} />
+              <div style={{ textAlign: "center" }}>
+                <div style={{ fontSize: 26, fontWeight: 900, color: C.slate }}>{b.to}</div>
+                <div style={{ fontSize: 12, color: C.slateLight }}>{b.arr}</div>
+              </div>
+            </div>
+            <button
+              onClick={() => setCheckedIn((prev) => ({ ...prev, [b.id]: true }))}
+              disabled={!!checkedIn[b.id]}
+              style={{
+                width: "100%",
+                padding: "13px",
+                background: checkedIn[b.id] ? C.greenPale : C.green,
+                color: checkedIn[b.id] ? C.green : C.white,
+                border: "none",
+                borderRadius: 12,
+                fontSize: 14,
+                fontWeight: 700,
+                cursor: checkedIn[b.id] ? "default" : "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 8,
+              }}
+            >
+              {checkedIn[b.id] ? (<><Check size={16} /> Check-in realizado</>) : "Confirmar check-in"}
+            </button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function StatusScreen({ onNav, userEmail }) {
+  const [from, setFrom] = useState("ACE");
+  const [to, setTo] = useState("LPA");
+  const [picker, setPicker] = useState(null);
+  const [result, setResult] = useState(null);
+
+  const search = () => {
+    const match = FLIGHTS.find((f) => f.from === from && f.to === to) || FLIGHTS[0];
+    setResult(match);
+  };
+
+  return (
+    <div style={{ paddingBottom: 100 }}>
+      <TopHeader onNav={onNav} userEmail={userEmail} />
+      <div style={{ padding: "20px" }}>
+        <div style={sectionTitle}>Estado de vuelo</div>
+
+        <div style={{ background: C.white, borderRadius: 18, padding: 16, boxShadow: C.shadowSm, marginBottom: 18 }}>
+          <div style={{ display: "flex", gap: 10, marginBottom: 14 }}>
+            <button onClick={() => setPicker("from")} style={{ flex: 1, padding: "14px 12px", borderRadius: 12, background: C.bg, border: `1px solid ${C.border}`, cursor: "pointer", textAlign: "left" }}>
+              <div style={{ fontSize: 11, color: C.slatePale, marginBottom: 2 }}>Origen</div>
+              <div style={{ fontSize: 18, fontWeight: 700, color: C.slate }}>{from}</div>
+            </button>
+            <div style={{ display: "flex", alignItems: "center" }}>
+              <div
+                onClick={() => { const tmp = from; setFrom(to); setTo(tmp); }}
+                style={{ width: 36, height: 36, borderRadius: "50%", background: C.greenPale, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}
+              >
+                <ArrowRight size={16} color={C.green} />
+              </div>
+            </div>
+            <button onClick={() => setPicker("to")} style={{ flex: 1, padding: "14px 12px", borderRadius: 12, background: C.bg, border: `1px solid ${C.border}`, cursor: "pointer", textAlign: "left" }}>
+              <div style={{ fontSize: 11, color: C.slatePale, marginBottom: 2 }}>Destino</div>
+              <div style={{ fontSize: 18, fontWeight: 700, color: C.slate }}>{to}</div>
+            </button>
+          </div>
+          <button
+            onClick={search}
+            style={{ width: "100%", padding: "16px", background: C.green, color: C.white, border: "none", borderRadius: 12, fontSize: 16, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}
+          >
+            <Activity size={18} />
+            Consultar estado
+          </button>
+        </div>
+
+        {result && (
+          <div style={{ background: C.white, borderRadius: 18, padding: 18, boxShadow: C.shadowSm }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+              <span style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", color: C.green, background: C.greenPale, padding: "4px 10px", borderRadius: 6 }}>A tiempo</span>
+              <span style={{ fontSize: 13, color: C.slateLight }}>{result.aircraft}</span>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+              <div style={{ textAlign: "center" }}>
+                <div style={{ fontSize: 28, fontWeight: 900, color: C.slate }}>{result.dep}</div>
+                <div style={{ fontSize: 13, color: C.slateLight }}>{result.from}</div>
+              </div>
+              <Plane size={20} style={{ color: C.green }} />
+              <div style={{ textAlign: "center" }}>
+                <div style={{ fontSize: 28, fontWeight: 900, color: C.slate }}>{result.arr}</div>
+                <div style={{ fontSize: 13, color: C.slateLight }}>{result.to}</div>
+              </div>
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-between", paddingTop: 14, borderTop: `1px solid ${C.border}`, fontSize: 13, color: C.slateLight }}>
+              <span>Puerta: <b style={{ color: C.slate }}>{["A", "B", "C"][result.id % 3]}{(result.id % 6) + 1}</b></span>
+              <span>Duración: <b style={{ color: C.slate }}>{result.duration}</b></span>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <AirportPicker
+        open={picker !== null}
+        title={picker === "from" ? "Selecciona origen" : "Selecciona destino"}
+        onSelect={(code) => { if (picker === "from") setFrom(code); else setTo(code); setPicker(null); }}
+        onClose={() => setPicker(null)}
+      />
+    </div>
+  );
+}
+
+function ProfileScreen({ onNav, userEmail, onSignOut }) {
   const [helpOpen, setHelpOpen] = useState(false);
   return (
     <div style={{ paddingBottom: 100 }}>
-      <div style={{ padding: "48px 20px 20px" }}>
+      <TopHeader onNav={onNav} userEmail={userEmail} />
+      <div style={{ padding: "20px 20px 0" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 28 }}>
-          <div style={{ width: 64, height: 64, borderRadius: "50%", background: `linear-gradient(135deg, ${C.green} 0%, ${C.greenMid} 100%)`, display: "flex", alignItems: "center", justifyContent: "center", color: C.white, fontSize: 22, fontWeight: 800, boxShadow: C.shadowMd }}>
+          <div style={{ width: 64, height: 64, borderRadius: "50%", background: C.green, display: "flex", alignItems: "center", justifyContent: "center", color: C.white, fontSize: 22, fontWeight: 900, boxShadow: C.shadowMd }}>
             {initials(userEmail)}
           </div>
           <div>
             <div style={{ fontSize: 18, fontWeight: 700, color: C.slate }}>{userEmail?.split("@")[0] || "Viajero"}</div>
             <div style={{ fontSize: 14, color: C.slateLight }}>{userEmail}</div>
-            <div style={{ marginTop: 4, display: "inline-flex", alignItems: "center", gap: 4, fontSize: 12, fontWeight: 600, color: C.gold, background: C.goldPale, padding: "3px 10px", borderRadius: 10 }}>
+            <div style={{ marginTop: 4, display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 700, textTransform: "uppercase", color: "#8A6D00", background: C.yellowPale, padding: "3px 10px", borderRadius: 6 }}>
               <Star size={12} />
               Club Isleño Gold
             </div>
@@ -1156,7 +1408,7 @@ function ProfileScreen({ userEmail, onSignOut }) {
           ].map((s, i) => (
             <div key={i} style={{ background: C.white, borderRadius: 16, padding: 16, textAlign: "center", boxShadow: C.shadowSm }}>
               <s.icon size={20} color={C.green} style={{ marginBottom: 4 }} />
-              <div style={{ fontSize: 20, fontWeight: 800, color: C.slate }}>{s.value}</div>
+              <div style={{ fontSize: 20, fontWeight: 900, color: C.slate }}>{s.value}</div>
               <div style={{ fontSize: 12, color: C.slateLight }}>{s.label}</div>
             </div>
           ))}
@@ -1205,8 +1457,8 @@ function ProfileScreen({ userEmail, onSignOut }) {
 /* splash while checking session */
 function Splash() {
   return (
-    <div style={{ minHeight: "100dvh", background: `linear-gradient(165deg, ${C.green} 0%, ${C.greenDark} 100%)`, display: "flex", alignItems: "center", justifyContent: "center", maxWidth: 480, margin: "0 auto" }}>
-      <div style={{ width: 72, height: 72, borderRadius: 20, background: "rgba(255,255,255,.14)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+    <div style={{ minHeight: "100dvh", background: C.green, display: "flex", alignItems: "center", justifyContent: "center", maxWidth: 480, margin: "0 auto" }}>
+      <div style={{ width: 72, height: 72, borderRadius: 20, background: "rgba(255,255,255,.16)", display: "flex", alignItems: "center", justifyContent: "center" }}>
         <Plane size={34} color={C.white} />
       </div>
     </div>
@@ -1242,7 +1494,7 @@ export default function FlyCanariasApp() {
 
   if (authLoading) return <Splash />;
 
-  const needsAuth = !session && ["detail", "bookings", "profile"].includes(screen);
+  const needsAuth = !session && ["detail", "bookings", "profile", "checkin"].includes(screen);
   if (needsAuth) return <AuthScreen onClose={() => onNav("home")} />;
 
   const userEmail = session?.user?.email;
@@ -1250,12 +1502,14 @@ export default function FlyCanariasApp() {
   return (
     <div style={{ fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", background: C.bg, minHeight: "100dvh", maxWidth: 480, margin: "0 auto", position: "relative", WebkitFontSmoothing: "antialiased" }}>
       {screen === "home" && <HomeScreen onNav={onNav} userEmail={userEmail} bookings={session ? bookings : []} />}
-      {screen === "search" && <SearchScreen onNav={onNav} onSelectFlight={onSelectFlight} />}
+      {screen === "search" && <SearchScreen onNav={onNav} onSelectFlight={onSelectFlight} userEmail={userEmail} />}
       {screen === "detail" && selectedFlight && (
         <FlightDetail flight={selectedFlight} onBack={() => setScreen("search")} onNav={onNav} onConfirmBooking={onConfirmBooking} />
       )}
-      {screen === "bookings" && <BookingsScreen userEmail={userEmail} bookings={bookings} />}
-      {screen === "profile" && <ProfileScreen userEmail={userEmail} onSignOut={onSignOut} />}
+      {screen === "bookings" && <BookingsScreen onNav={onNav} userEmail={userEmail} bookings={bookings} />}
+      {screen === "checkin" && <CheckinScreen onNav={onNav} userEmail={userEmail} bookings={bookings} />}
+      {screen === "status" && <StatusScreen onNav={onNav} userEmail={userEmail} />}
+      {screen === "profile" && <ProfileScreen onNav={onNav} userEmail={userEmail} onSignOut={onSignOut} />}
 
       {screen !== "detail" && <BottomNav active={screen} onNav={onNav} />}
     </div>
