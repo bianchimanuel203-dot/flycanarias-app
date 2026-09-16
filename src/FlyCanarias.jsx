@@ -110,6 +110,9 @@ const INITIAL_BOOKINGS = [
   },
 ];
 
+/* URL de producción registrada en Supabase Auth → Redirect URLs */
+const OAUTH_REDIRECT_URL = "https://flycanarias-app.vercel.app";
+
 /* ─── helpers ─── */
 const airportName = (code) => AIRPORTS.find((a) => a.code === code);
 const today = () => new Date().toISOString().split("T")[0];
@@ -210,7 +213,7 @@ function AuthScreen({ onClose }) {
     setGoogleLoading(true);
     const { error: err } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: window.location.origin },
+      options: { redirectTo: OAUTH_REDIRECT_URL },
     });
     if (err) {
       setError(err.message || "No se ha podido iniciar sesión con Google");
@@ -898,7 +901,7 @@ function SearchScreen({ onNav, onSelectFlight, userEmail }) {
   );
 }
 
-function FlightDetail({ flight, onBack, onNav, onConfirmBooking }) {
+function FlightDetail({ flight, onBack, onNav, onConfirmBooking, session, onRequireAuth }) {
   const [step, setStep] = useState(0);
   const [selectedSeat, setSelectedSeat] = useState(null);
   const [confirmation, setConfirmation] = useState(null);
@@ -1103,7 +1106,10 @@ function FlightDetail({ flight, onBack, onNav, onConfirmBooking }) {
             <div style={{ fontSize: 22, ...priceStrong }}>{f.price + 12}€</div>
           </div>
           <button
-            onClick={() => (step === 2 ? confirmBooking() : setStep(step + 1))}
+            onClick={() => {
+              if (!session) { onRequireAuth(); return; }
+              if (step === 2) confirmBooking(); else setStep(step + 1);
+            }}
             disabled={step === 1 && !selectedSeat}
             style={{ padding: "14px 32px", background: step === 1 && !selectedSeat ? C.slatePale : C.green, color: C.white, border: "none", borderRadius: 12, fontSize: 16, fontWeight: 700, cursor: step === 1 && !selectedSeat ? "not-allowed" : "pointer", display: "flex", alignItems: "center", gap: 8, boxShadow: C.shadowMd }}
           >
@@ -1472,6 +1478,7 @@ export default function FlyCanariasApp() {
   const [screen, setScreen] = useState("home");
   const [selectedFlight, setSelectedFlight] = useState(null);
   const [bookings, setBookings] = useState(INITIAL_BOOKINGS);
+  const [authPrompt, setAuthPrompt] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -1484,6 +1491,11 @@ export default function FlyCanariasApp() {
     return () => listener.subscription.unsubscribe();
   }, []);
 
+  // una vez hay sesión activa, cierra cualquier prompt de login pendiente
+  useEffect(() => {
+    if (session) setAuthPrompt(false);
+  }, [session]);
+
   const onNav = (s) => { setSelectedFlight(null); setScreen(s); };
   const onSelectFlight = (f) => { setSelectedFlight(f); setScreen("detail"); };
   const onConfirmBooking = (booking) => setBookings((prev) => [booking, ...prev]);
@@ -1494,8 +1506,14 @@ export default function FlyCanariasApp() {
 
   if (authLoading) return <Splash />;
 
-  const needsAuth = !session && ["detail", "bookings", "profile", "checkin"].includes(screen);
-  if (needsAuth) return <AuthScreen onClose={() => onNav("home")} />;
+  // Home y Búsqueda son siempre accesibles sin sesión. "Mis reservas", "Check-in" y
+  // "Perfil" requieren cuenta porque muestran datos del usuario. La pantalla de detalle
+  // de vuelo (búsqueda de info, asiento) es libre; el login solo se pide al intentar
+  // reservar (ver onRequireAuth en FlightDetail).
+  const needsAuth = !session && ["bookings", "profile", "checkin"].includes(screen);
+  if (needsAuth || (authPrompt && !session)) {
+    return <AuthScreen onClose={() => { setAuthPrompt(false); onNav("home"); }} />;
+  }
 
   const userEmail = session?.user?.email;
 
@@ -1504,7 +1522,14 @@ export default function FlyCanariasApp() {
       {screen === "home" && <HomeScreen onNav={onNav} userEmail={userEmail} bookings={session ? bookings : []} />}
       {screen === "search" && <SearchScreen onNav={onNav} onSelectFlight={onSelectFlight} userEmail={userEmail} />}
       {screen === "detail" && selectedFlight && (
-        <FlightDetail flight={selectedFlight} onBack={() => setScreen("search")} onNav={onNav} onConfirmBooking={onConfirmBooking} />
+        <FlightDetail
+          flight={selectedFlight}
+          onBack={() => setScreen("search")}
+          onNav={onNav}
+          onConfirmBooking={onConfirmBooking}
+          session={session}
+          onRequireAuth={() => setAuthPrompt(true)}
+        />
       )}
       {screen === "bookings" && <BookingsScreen onNav={onNav} userEmail={userEmail} bookings={bookings} />}
       {screen === "checkin" && <CheckinScreen onNav={onNav} userEmail={userEmail} bookings={bookings} />}
