@@ -1958,6 +1958,135 @@ function FavoritesScreen({ onBack, onNav }) {
   );
 }
 
+/* ─── PERFIL: seguridad ─── */
+function SecurityScreen({ onBack, userEmail, session, onNav }) {
+  const C = useTheme();
+  const [current, setCurrent] = useState("");
+  const [newPw, setNewPw] = useState("");
+  const [confirmPw, setConfirmPw] = useState("");
+  const [pwError, setPwError] = useState("");
+  const [pwMsg, setPwMsg] = useState("");
+  const [pwLoading, setPwLoading] = useState(false);
+  const [globalLoading, setGlobalLoading] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+
+  const googleLinked = !!session?.user?.identities?.some((i) => i.provider === "google");
+
+  const changePassword = async () => {
+    setPwError(""); setPwMsg("");
+    if (newPw.length < 6) { setPwError("La nueva contraseña debe tener al menos 6 caracteres"); return; }
+    if (newPw !== confirmPw) { setPwError("Las contraseñas no coinciden"); return; }
+    setPwLoading(true);
+    try {
+      const { error: reauthErr } = await supabase.auth.signInWithPassword({ email: userEmail, password: current });
+      if (reauthErr) throw new Error("La contraseña actual no es correcta");
+      const { error: updateErr } = await supabase.auth.updateUser({ password: newPw });
+      if (updateErr) throw updateErr;
+      setPwMsg("Contraseña actualizada correctamente");
+      setCurrent(""); setNewPw(""); setConfirmPw("");
+    } catch (e) {
+      setPwError(e.message || "No se ha podido cambiar la contraseña");
+    } finally {
+      setPwLoading(false);
+    }
+  };
+
+  const signOutEverywhere = async () => {
+    setGlobalLoading(true);
+    await supabase.auth.signOut({ scope: "global" });
+    setGlobalLoading(false);
+    onNav("home");
+  };
+
+  const deleteAccount = async () => {
+    await supabase.auth.signOut();
+    onNav("home");
+  };
+
+  return (
+    <div style={{ paddingBottom: 140 }}>
+      <SubHeader title="Seguridad" onBack={onBack} />
+      <div style={{ padding: 20 }}>
+        <div style={{ background: C.surface, borderRadius: 18, padding: 18, boxShadow: C.shadowSm, marginBottom: 16 }}>
+          <div style={{ fontSize: 15, fontWeight: 700, color: C.slate, marginBottom: 14 }}>Cambiar contraseña</div>
+          {[
+            { label: "Contraseña actual", value: current, set: setCurrent },
+            { label: "Nueva contraseña", value: newPw, set: setNewPw },
+            { label: "Confirmar nueva contraseña", value: confirmPw, set: setConfirmPw },
+          ].map((f, i) => (
+            <div key={i} style={{ marginBottom: 12 }}>
+              <label style={{ fontSize: 13, fontWeight: 600, color: C.slate, display: "block", marginBottom: 6 }}>{f.label}</label>
+              <input
+                type="password"
+                value={f.value}
+                onChange={(e) => { f.set(e.target.value); setPwError(""); setPwMsg(""); }}
+                style={{ width: "100%", minHeight: 44, border: `1px solid ${C.border}`, background: C.bg, borderRadius: 12, padding: "12px 14px", fontSize: 16, color: C.slate, outline: "none" }}
+              />
+            </div>
+          ))}
+          {pwError && <div style={{ padding: "10px 14px", background: C.coralPale, borderRadius: 10, color: C.coral, fontSize: 13, marginBottom: 12 }}>{pwError}</div>}
+          {pwMsg && <div style={{ padding: "10px 14px", background: C.greenPale, borderRadius: 10, color: C.green, fontSize: 13, marginBottom: 12 }}>{pwMsg}</div>}
+          <button
+            onClick={changePassword}
+            disabled={pwLoading}
+            style={{ width: "100%", minHeight: 48, padding: "14px", background: C.green, color: "#FFFFFF", border: "none", borderRadius: 12, fontSize: 15, fontWeight: 700, cursor: pwLoading ? "wait" : "pointer" }}
+          >
+            {pwLoading ? "Actualizando..." : "Cambiar contraseña"}
+          </button>
+        </div>
+
+        <div style={{ background: C.surface, borderRadius: 18, padding: 18, boxShadow: C.shadowSm, marginBottom: 16, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+          <div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: C.slate }}>Autenticación con Google</div>
+            <div style={{ fontSize: 12, color: C.slateLight }}>Vinculada a tu cuenta de FlyCanarias</div>
+          </div>
+          <span style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", padding: "5px 10px", borderRadius: 6, background: googleLinked ? C.greenPale : C.coralPale, color: googleLinked ? C.green : C.coral, flexShrink: 0 }}>
+            {googleLinked ? "Activo" : "Inactivo"}
+          </span>
+        </div>
+
+        <button
+          onClick={signOutEverywhere}
+          disabled={globalLoading}
+          style={{ width: "100%", minHeight: 48, padding: "14px", background: C.surface, border: `1px solid ${C.border}`, borderRadius: 12, color: C.slate, fontSize: 15, fontWeight: 600, cursor: "pointer", marginBottom: 16, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}
+        >
+          <LogOut size={16} /> {globalLoading ? "Cerrando sesiones..." : "Cerrar sesión en todos los dispositivos"}
+        </button>
+
+        <button
+          onClick={() => setConfirmDelete(true)}
+          style={{ width: "100%", minHeight: 48, padding: "14px", background: C.coral, border: "none", borderRadius: 12, color: "#FFFFFF", fontSize: 15, fontWeight: 700, cursor: "pointer" }}
+        >
+          Eliminar cuenta
+        </button>
+
+        {confirmDelete && (
+          <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.5)", zIndex: 200, display: "flex", alignItems: "flex-end", justifyContent: "center" }} onClick={() => setConfirmDelete(false)}>
+            <div onClick={(e) => e.stopPropagation()} style={{ background: C.surface, borderRadius: "24px 24px 0 0", width: "100%", maxWidth: 480, padding: "24px 20px calc(24px + env(safe-area-inset-bottom, 0px))" }}>
+              <div style={{ fontSize: 17, fontWeight: 800, color: C.slate, marginBottom: 8 }}>¿Eliminar tu cuenta?</div>
+              <p style={{ fontSize: 13, color: C.slateLight, marginBottom: 18 }}>
+                Se cerrará tu sesión y se registrará tu solicitud de baja. Un agente confirmará la eliminación definitiva de tus datos por email.
+              </p>
+              <button
+                onClick={deleteAccount}
+                style={{ width: "100%", minHeight: 48, padding: "14px", background: C.coral, color: "#FFFFFF", border: "none", borderRadius: 12, fontSize: 15, fontWeight: 700, cursor: "pointer", marginBottom: 10 }}
+              >
+                Sí, eliminar cuenta
+              </button>
+              <button
+                onClick={() => setConfirmDelete(false)}
+                style={{ width: "100%", minHeight: 48, padding: "14px", background: "none", border: `1px solid ${C.border}`, borderRadius: 12, color: C.slate, fontSize: 15, fontWeight: 600, cursor: "pointer" }}
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function Splash() {
   const C = useTheme();
   return (
