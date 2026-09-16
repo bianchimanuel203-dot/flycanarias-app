@@ -2087,6 +2087,132 @@ function SecurityScreen({ onBack, userEmail, session, onNav }) {
   );
 }
 
+/* ─── PERFIL: ayuda ─── */
+const FAQS = [
+  { q: "¿Cómo cambio mi vuelo?", a: "Ve a \"Mis vuelos\", selecciona la reserva y elige la opción de modificar fecha u hora. Puede aplicarse una diferencia de tarifa." },
+  { q: "¿Cuál es la política de equipaje?", a: "El billete incluye 10kg de equipaje de mano. Puedes añadir equipaje facturado (23kg) desde el paso de Extras al reservar." },
+  { q: "¿Cómo hago el check-in online?", a: "Desde la pantalla de Check-in, introduce tu código de reserva y confirma. Se abre 48h antes del vuelo." },
+  { q: "¿Puedo viajar con mascotas?", a: "Sí, se admiten mascotas pequeñas en cabina con reserva previa y suplemento. Consulta condiciones con atención al cliente." },
+  { q: "¿Cómo solicito reembolso?", a: "Escríbenos desde esta pantalla de Ayuda o al email de soporte indicando tu localizador y motivo de la solicitud." },
+];
+
+function FaqItem({ q, a }) {
+  const C = useTheme();
+  const [open, setOpen] = useState(false);
+  return (
+    <div style={{ borderBottom: `1px solid ${C.border}` }}>
+      <button
+        onClick={() => setOpen((o) => !o)}
+        style={{ width: "100%", minHeight: 44, padding: "14px 4px", background: "none", border: "none", display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer", textAlign: "left", gap: 10 }}
+      >
+        <span style={{ fontSize: 14, fontWeight: 600, color: C.slate }}>{q}</span>
+        <ChevronRight size={18} color={C.slatePale} style={{ transform: open ? "rotate(90deg)" : "none", transition: "transform .2s", flexShrink: 0 }} />
+      </button>
+      <div style={{ maxHeight: open ? 240 : 0, overflow: "hidden", transition: "max-height .25s ease" }}>
+        <p style={{ fontSize: 13, color: C.slateLight, padding: "0 4px 14px", margin: 0 }}>{a}</p>
+      </div>
+    </div>
+  );
+}
+
+function HelpChat() {
+  const C = useTheme();
+  const [messages, setMessages] = useState([{ from: "bot", text: "¡Hola! Soy el asistente de FlyCanarias. ¿En qué puedo ayudarte?" }]);
+  const [input, setInput] = useState("");
+
+  const respond = (text) => {
+    const lower = text.toLowerCase();
+    if (lower.includes("equipaje") || lower.includes("maleta")) return FAQS[1].a;
+    if (lower.includes("check")) return FAQS[2].a;
+    if (lower.includes("mascota") || lower.includes("perro") || lower.includes("gato")) return FAQS[3].a;
+    if (lower.includes("reembolso") || lower.includes("cancel") || lower.includes("devol")) return FAQS[4].a;
+    if (lower.includes("cambi") || lower.includes("modific")) return FAQS[0].a;
+    return "Gracias por tu mensaje. Un agente humano revisará tu consulta y te responderá por email en menos de 24h.";
+  };
+
+  const send = () => {
+    const text = input.trim();
+    if (!text) return;
+    setMessages((prev) => [...prev, { from: "user", text }]);
+    setInput("");
+    setTimeout(() => {
+      setMessages((prev) => [...prev, { from: "bot", text: respond(text) }]);
+    }, 500);
+  };
+
+  return (
+    <div style={{ background: C.surface, borderRadius: 18, boxShadow: C.shadowSm, marginBottom: 20, overflow: "hidden" }}>
+      <div style={{ padding: "14px 16px", borderBottom: `1px solid ${C.border}`, fontSize: 14, fontWeight: 700, color: C.slate }}>Chat de ayuda</div>
+      <div style={{ padding: 14, display: "flex", flexDirection: "column", gap: 8, maxHeight: 260, overflowY: "auto" }}>
+        {messages.map((m, i) => (
+          <div
+            key={i}
+            style={{ alignSelf: m.from === "user" ? "flex-end" : "flex-start", background: m.from === "user" ? C.green : C.bg, color: m.from === "user" ? "#FFFFFF" : C.slate, padding: "9px 13px", borderRadius: 14, fontSize: 13, maxWidth: "80%" }}
+          >
+            {m.text}
+          </div>
+        ))}
+      </div>
+      <div style={{ display: "flex", gap: 8, padding: 12, borderTop: `1px solid ${C.border}` }}>
+        <input
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && send()}
+          placeholder="Escribe tu consulta..."
+          style={{ flex: 1, minHeight: 44, border: `1px solid ${C.border}`, background: C.bg, borderRadius: 12, padding: "0 14px", fontSize: 16, color: C.slate, outline: "none" }}
+        />
+        <button onClick={send} aria-label="Enviar" style={{ width: 44, height: 44, borderRadius: 12, background: C.green, border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+          <ArrowRight size={18} color="#FFFFFF" />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function HelpScreen({ onBack }) {
+  const C = useTheme();
+  return (
+    <div style={{ paddingBottom: 140 }}>
+      <SubHeader title="Ayuda" onBack={onBack} />
+      <div style={{ padding: 20 }}>
+        <div style={{ background: C.surface, borderRadius: 18, padding: "4px 18px", boxShadow: C.shadowSm, marginBottom: 20 }}>
+          <div style={{ fontSize: 15, fontWeight: 700, color: C.slate, padding: "14px 0 4px" }}>Preguntas frecuentes</div>
+          {FAQS.map((f, i) => (<FaqItem key={i} q={f.q} a={f.a} />))}
+        </div>
+
+        <div style={{ background: C.surface, borderRadius: 18, boxShadow: C.shadowSm, overflow: "hidden", marginBottom: 20 }}>
+          <div style={{ padding: "14px 16px", fontSize: 15, fontWeight: 700, color: C.slate, borderBottom: `1px solid ${C.border}` }}>Contacto</div>
+          {[
+            { icon: Mail, label: "Email", value: "hola@flycanarias.com" },
+            { icon: Phone, label: "Teléfono", value: "+34 928 000 000" },
+          ].map((c, i) => (
+            <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "14px 16px", borderBottom: `1px solid ${C.border}` }}>
+              <div style={{ width: 36, height: 36, borderRadius: 10, background: C.greenPale, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <c.icon size={16} color={C.green} />
+              </div>
+              <div>
+                <div style={{ fontSize: 11, color: C.slatePale }}>{c.label}</div>
+                <div style={{ fontSize: 14, fontWeight: 600, color: C.slate }}>{c.value}</div>
+              </div>
+            </div>
+          ))}
+          <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "14px 16px" }}>
+            <div style={{ width: 36, height: 36, borderRadius: 10, background: "#E7F7EE", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <MessageCircle size={16} color="#25D366" />
+            </div>
+            <div>
+              <div style={{ fontSize: 11, color: C.slatePale }}>WhatsApp</div>
+              <div style={{ fontSize: 14, fontWeight: 600, color: C.slate }}>+34 928 000 000</div>
+            </div>
+          </div>
+        </div>
+
+        <HelpChat />
+      </div>
+    </div>
+  );
+}
+
 function Splash() {
   const C = useTheme();
   return (
