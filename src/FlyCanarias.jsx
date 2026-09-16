@@ -28,6 +28,8 @@ import {
   Eye,
   EyeOff,
   LogOut,
+  HelpCircle,
+  Phone,
 } from "lucide-react";
 
 /* ─── palette & tokens ─── */
@@ -118,7 +120,7 @@ const formatBookingDate = (d) =>
   d.toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "numeric" }).replace(".", "");
 
 /* ─── AUTH SCREEN (integrated) ─── */
-function AuthScreen() {
+function AuthScreen({ onClose }) {
   const [mode, setMode] = useState("login"); // login | register
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -182,7 +184,16 @@ function AuthScreen() {
         margin: "0 auto",
       }}
     >
-      <div style={{ flex: "0 0 auto", padding: "64px 24px 36px", textAlign: "center", color: C.white }}>
+      <div style={{ flex: "0 0 auto", padding: "64px 24px 36px", textAlign: "center", color: C.white, position: "relative" }}>
+        {onClose && (
+          <button
+            onClick={onClose}
+            aria-label="Volver sin iniciar sesión"
+            style={{ position: "absolute", top: 20, left: 20, background: "rgba(255,255,255,.14)", border: "none", borderRadius: 10, padding: 8, cursor: "pointer", color: C.white, display: "flex" }}
+          >
+            <X size={20} />
+          </button>
+        )}
         <div
           style={{
             width: 72,
@@ -474,6 +485,50 @@ function AirportPicker({ open, onSelect, onClose, title }) {
             </div>
           </button>
         ))}
+      </div>
+    </div>
+  );
+}
+
+/* help & contact modal */
+function HelpModal({ open, onClose }) {
+  if (!open) return null;
+  return (
+    <div
+      style={{ position: "fixed", inset: 0, background: "rgba(0,20,12,.5)", zIndex: 200, display: "flex", alignItems: "flex-end", justifyContent: "center" }}
+      onClick={onClose}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{ background: C.white, borderRadius: "24px 24px 0 0", width: "100%", maxWidth: 480, padding: "24px 20px", boxShadow: C.shadowLg }}
+      >
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+          <h3 style={{ margin: 0, fontSize: 18, color: C.slate }}>Ayuda y contacto</h3>
+          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: C.slateLight }}>
+            <X size={22} />
+          </button>
+        </div>
+        <p style={{ fontSize: 14, color: C.slateLight, marginBottom: 20 }}>
+          ¿Necesitas ayuda con tu reserva? Nuestro equipo está disponible de lunes a viernes de 9:00 a 18:00.
+        </p>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "14px 4px", borderBottom: `1px solid ${C.border}` }}>
+          <div style={{ width: 40, height: 40, borderRadius: 10, background: C.greenPale, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <Mail size={18} color={C.green} />
+          </div>
+          <div>
+            <div style={{ fontSize: 12, color: C.slatePale }}>Email</div>
+            <div style={{ fontSize: 15, fontWeight: 600, color: C.slate }}>soporte@flycanarias.com</div>
+          </div>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "14px 4px" }}>
+          <div style={{ width: 40, height: 40, borderRadius: 10, background: C.greenPale, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <Phone size={18} color={C.green} />
+          </div>
+          <div>
+            <div style={{ fontSize: 12, color: C.slatePale }}>Teléfono</div>
+            <div style={{ fontSize: 15, fontWeight: 600, color: C.slate }}>+34 900 123 456</div>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -967,6 +1022,7 @@ function FlightDetail({ flight, onBack, onNav, onConfirmBooking }) {
 }
 
 function BookingsScreen({ userEmail, bookings }) {
+  const [checkedIn, setCheckedIn] = useState({});
   return (
     <div style={{ paddingBottom: 100 }}>
       <div style={{ padding: "48px 20px 20px" }}>
@@ -1035,6 +1091,36 @@ function BookingsScreen({ userEmail, bookings }) {
               />
               <span style={{ fontSize: 12, color: C.slateLight }}>Tarjeta de embarque digital</span>
             </div>
+
+            <button
+              onClick={() => setCheckedIn((prev) => ({ ...prev, [b.id]: true }))}
+              disabled={!!checkedIn[b.id]}
+              style={{
+                width: "100%",
+                marginTop: 14,
+                padding: "13px",
+                background: checkedIn[b.id] ? C.greenPale : C.green,
+                color: checkedIn[b.id] ? C.green : C.white,
+                border: "none",
+                borderRadius: 12,
+                fontSize: 14,
+                fontWeight: 700,
+                cursor: checkedIn[b.id] ? "default" : "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 8,
+              }}
+            >
+              {checkedIn[b.id] ? (
+                <>
+                  <Check size={16} />
+                  Check-in realizado
+                </>
+              ) : (
+                "Hacer check-in"
+              )}
+            </button>
           </div>
         </div>
         ))}
@@ -1044,6 +1130,7 @@ function BookingsScreen({ userEmail, bookings }) {
 }
 
 function ProfileScreen({ userEmail, onSignOut }) {
+  const [helpOpen, setHelpOpen] = useState(false);
   return (
     <div style={{ paddingBottom: 100 }}>
       <div style={{ padding: "48px 20px 20px" }}>
@@ -1083,8 +1170,13 @@ function ProfileScreen({ userEmail, onSignOut }) {
             { icon: Heart, label: "Destinos favoritos" },
             { icon: Shield, label: "Seguridad" },
             { icon: Settings, label: "Configuración" },
+            { icon: HelpCircle, label: "Ayuda", onClick: () => setHelpOpen(true) },
           ].map((item, i, arr) => (
-            <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 18px", cursor: "pointer", borderBottom: i < arr.length - 1 ? `1px solid ${C.border}` : "none" }}>
+            <div
+              key={i}
+              onClick={item.onClick}
+              style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 18px", cursor: "pointer", borderBottom: i < arr.length - 1 ? `1px solid ${C.border}` : "none" }}
+            >
               <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                 <item.icon size={20} color={C.slateLight} />
                 <span style={{ fontSize: 15, color: C.slate }}>{item.label}</span>
@@ -1093,6 +1185,8 @@ function ProfileScreen({ userEmail, onSignOut }) {
             </div>
           ))}
         </div>
+
+        <HelpModal open={helpOpen} onClose={() => setHelpOpen(false)} />
 
         <div style={{ marginTop: 20, textAlign: "center" }}>
           <button
@@ -1147,13 +1241,15 @@ export default function FlyCanariasApp() {
   };
 
   if (authLoading) return <Splash />;
-  if (!session) return <AuthScreen />;
 
-  const userEmail = session.user?.email;
+  const needsAuth = !session && ["detail", "bookings", "profile"].includes(screen);
+  if (needsAuth) return <AuthScreen onClose={() => onNav("home")} />;
+
+  const userEmail = session?.user?.email;
 
   return (
     <div style={{ fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", background: C.bg, minHeight: "100dvh", maxWidth: 480, margin: "0 auto", position: "relative", WebkitFontSmoothing: "antialiased" }}>
-      {screen === "home" && <HomeScreen onNav={onNav} userEmail={userEmail} bookings={bookings} />}
+      {screen === "home" && <HomeScreen onNav={onNav} userEmail={userEmail} bookings={session ? bookings : []} />}
       {screen === "search" && <SearchScreen onNav={onNav} onSelectFlight={onSelectFlight} />}
       {screen === "detail" && selectedFlight && (
         <FlightDetail flight={selectedFlight} onBack={() => setScreen("search")} onNav={onNav} onConfirmBooking={onConfirmBooking} />
