@@ -1,80 +1,86 @@
 # ✈️ FlyCanarias — App de Aerolínea Interislas
 
-Aplicación web de reserva de vuelos interinsulares para las Islas Canarias. Proyecto de desarrollo frontend construido con React + Vite.
+App móvil de reserva de vuelos interinsulares para las Islas Canarias.
+Construida con React + Vite, autenticación real con Supabase y desplegada en Vercel.
 
-## 🖥️ Demo
+🔗 [Ver demo en vivo](https://flycanarias-app.vercel.app)
 
-👉 [Ver demo en vivo](https://flycanarias.vercel.app)
+---
 
 ## 📱 Pantallas
 
 | Pantalla | Descripción |
 |----------|-------------|
-| **Login** | Autenticación con email/contraseña, registro, recuperación de contraseña y login social (Google/Apple) |
+| **Login** | Autenticación real con Supabase (email/contraseña + Google OAuth) |
 | **Inicio** | Dashboard con próximo vuelo, ofertas interislas y servicios a bordo |
-| **Búsqueda** | Buscador con selector de aeropuertos (8 islas), fecha, pasajeros y resultados con filtros |
-| **Reserva** | Flujo de 3 pasos: detalles del vuelo → selección de asiento → pago |
-| **Mis Vuelos** | Tarjeta de embarque digital con código QR |
-| **Perfil** | Datos del usuario, programa de fidelización y configuración |
+| **Búsqueda** | 8 aeropuertos canarios, fecha, pasajeros, filtros por precio/hora |
+| **Reserva** | Flujo 3 pasos: detalles → selección de asiento → pago |
+| **Mis Vuelos** | Tarjeta de embarque digital con código QR y check-in simulado |
+| **Perfil** | Datos del usuario, programa de fidelización Club Isleño |
 
-## 🛠️ Stack Tecnológico
+---
+
+## 🛠️ Stack
 
 - **React 18** — Componentes funcionales con Hooks
 - **Vite 5** — Build tool y dev server
+- **Supabase Auth** — Autenticación real (email + Google OAuth)
 - **Lucide React** — Iconografía
-- **CSS-in-JS** — Estilos inline para componentes autocontenidos
-- **Vercel** — Despliegue y hosting
+- **CSS-in-JS** — Estilos inline, sin dependencias de CSS externo
+- **Vercel** — Despliegue continuo desde GitHub
+
+---
 
 ## 🏗️ Arquitectura
 
-```
 src/
-├── main.jsx          # Entry point
-├── index.css         # Reset CSS global
-├── App.jsx           # Router: login → app
-├── LoginScreen.jsx   # Autenticación simulada
-└── FlyCanarias.jsx   # App principal (5 pantallas)
-```
+├── main.jsx # Entry point
+├── index.css # Reset CSS global
+├── App.jsx # Gate de auth: guest → app
+├── lib/
+│ └── supabaseClient.js # Cliente Supabase
+└── FlyCanarias.jsx # App principal (todas las pantallas)
+
 
 ### Decisiones técnicas
 
-- **SPA con estado en cliente**: navegación por estados de React (`useState`) sin dependencia de router externo, reduciendo bundle size
-- **CSS-in-JS inline**: componentes completamente autocontenidos y portables sin conflictos de especificidad
-- **Datos mock integrados**: aeropuertos, vuelos y reservas simulados para demostrar el flujo completo sin backend
-- **Mobile-first**: diseñado para viewport de 480px con soporte para safe-area-inset
+- **SPA con estado en cliente** — navegación por `useState` sin router externo, reduciendo bundle size
+- **Gate de login diferido** — Home y Búsqueda accesibles sin sesión; login solo al intentar reservar
+- **CSS-in-JS inline** — componentes autocontenidos sin conflictos de especificidad
+- **Datos mock** — aeropuertos, vuelos y reservas simulados para demostrar el flujo completo
+- **Mobile-first** — diseñado para 480px con soporte `safe-area-inset`
+
+---
 
 ## 🚀 Instalación local
 
 ```bash
-git clone https://github.com/TU_USUARIO/flycanarias-app.git
+git clone https://github.com/bianchimanuel203-dot/flycanarias-app.git
 cd flycanarias-app
 npm install
+cp .env.example .env.local
+# Añade tus variables de Supabase en .env.local
 npm run dev
 ```
 
 Abre `http://localhost:5173` en tu navegador.
 
-## 📦 Build para producción
+---
 
-```bash
-npm run build
-```
+## 🔑 Variables de entorno
 
-Los archivos estáticos se generan en `dist/`.
+VITE_SUPABASE_URL=
+VITE_SUPABASE_ANON_KEY=
+
+
+---
 
 ## 🗺️ Roadmap
 
-- [ ] Backend con Supabase (auth real + base de datos)
-- [ ] Pasarela de pago con Stripe
-- [ ] Notificaciones push de estado de vuelo
+- [x] Supabase Auth (email + Google OAuth)
+- [x] Gate de login diferido
+- [x] Check-in simulado
+- [x] Boarding pass con QR
+- [ ] Stripe pagos en modo test
+- [ ] Notificaciones push
 - [ ] PWA con soporte offline
-- [ ] Integración con API de precios reales
-
-## 👤 Autor
-
-**Manuel Bianchi**
-- LinkedIn: [linkedin.com/in/manuelbianchi-it](https://linkedin.com/in/manuelbianchi-it)
-
-## 📄 Licencia
-
-MIT
