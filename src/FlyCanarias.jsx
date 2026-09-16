@@ -1685,6 +1685,99 @@ function ProfileScreen({ onNav, userEmail, onSignOut }) {
 }
 
 /* splash while checking session */
+/* ─── PERFIL: datos personales ─── */
+const EMPTY_PERSONAL = { fullName: "", phone: "", birthDate: "", nationality: "", docId: "", photo: null };
+
+function PersonalDataScreen({ onBack, userEmail }) {
+  const C = useTheme();
+  const [data, setData] = useState(() => loadLS(LS_KEYS.personal, EMPTY_PERSONAL));
+  const [saved, setSaved] = useState(false);
+
+  const update = (key, value) => { setData((d) => ({ ...d, [key]: value })); setSaved(false); };
+
+  const handlePhoto = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => update("photo", reader.result);
+    reader.readAsDataURL(file);
+  };
+
+  const save = () => {
+    saveLS(LS_KEYS.personal, data);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2500);
+  };
+
+  return (
+    <div style={{ paddingBottom: 140 }}>
+      <SubHeader title="Datos personales" onBack={onBack} />
+      <div style={{ padding: 20 }}>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginBottom: 24 }}>
+          <label style={{ position: "relative", cursor: "pointer" }}>
+            <div
+              style={{
+                width: 88,
+                height: 88,
+                borderRadius: "50%",
+                background: data.photo ? `#000 url(${data.photo}) center/cover no-repeat` : C.green,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: "#FFFFFF",
+                fontSize: 28,
+                fontWeight: 900,
+                boxShadow: C.shadowMd,
+              }}
+            >
+              {!data.photo && initials(userEmail)}
+            </div>
+            <div style={{ position: "absolute", bottom: 0, right: 0, width: 30, height: 30, borderRadius: "50%", background: C.yellow, display: "flex", alignItems: "center", justifyContent: "center", border: `2px solid ${C.bg}` }}>
+              <Camera size={14} color="#1A1A1A" />
+            </div>
+            <input type="file" accept="image/*" onChange={handlePhoto} style={{ display: "none" }} />
+          </label>
+          <span style={{ fontSize: 12, color: C.slateLight, marginTop: 8 }}>Toca para cambiar la foto</span>
+        </div>
+
+        {[
+          { key: "fullName", label: "Nombre completo", type: "text", placeholder: "Tu nombre y apellidos" },
+          { key: "phone", label: "Teléfono", type: "tel", placeholder: "+34 600 000 000" },
+          { key: "birthDate", label: "Fecha de nacimiento", type: "date", placeholder: "" },
+          { key: "nationality", label: "Nacionalidad", type: "text", placeholder: "Española" },
+          { key: "docId", label: "Número de pasaporte/DNI", type: "text", placeholder: "12345678A" },
+        ].map((f) => (
+          <div key={f.key} style={{ marginBottom: 14 }}>
+            <label style={{ fontSize: 13, fontWeight: 600, color: C.slate, display: "block", marginBottom: 6 }}>{f.label}</label>
+            <input
+              type={f.type}
+              value={data[f.key]}
+              onChange={(e) => update(f.key, e.target.value)}
+              placeholder={f.placeholder}
+              style={{ width: "100%", minHeight: 44, border: `1px solid ${C.border}`, background: C.surface, borderRadius: 12, padding: "12px 14px", fontSize: 16, color: C.slate, outline: "none" }}
+            />
+          </div>
+        ))}
+
+        <div style={{ marginBottom: 20 }}>
+          <label style={{ fontSize: 13, fontWeight: 600, color: C.slate, display: "block", marginBottom: 6 }}>Email</label>
+          <div style={{ width: "100%", minHeight: 44, border: `1px solid ${C.border}`, background: C.bg, borderRadius: 12, padding: "12px 14px", fontSize: 16, color: C.slateLight, display: "flex", alignItems: "center" }}>
+            {userEmail || "—"}
+          </div>
+          <span style={{ fontSize: 11, color: C.slatePale }}>Gestionado por tu cuenta, no editable</span>
+        </div>
+
+        <button
+          onClick={save}
+          style={{ width: "100%", minHeight: 48, padding: "14px", background: saved ? C.greenPale : C.green, color: saved ? C.green : "#FFFFFF", border: "none", borderRadius: 12, fontSize: 16, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}
+        >
+          {saved ? (<><Check size={18} /> Cambios guardados</>) : "Guardar cambios"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function Splash() {
   const C = useTheme();
   return (
