@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { supabase } from "./lib/supabaseClient";
 import {
   Plane,
@@ -94,7 +94,7 @@ const PROMOS = [
   { dest: "El Hierro", price: 45, tagline: "El fin del mundo conocido" },
 ];
 
-const BOOKINGS = [
+const INITIAL_BOOKINGS = [
   {
     id: "FC-2026-4851",
     from: "ACE",
@@ -114,6 +114,8 @@ const today = () => new Date().toISOString().split("T")[0];
 const qrUrl = (data) =>
   `https://api.qrserver.com/v1/create-qr-code/?size=200x200&margin=0&data=${encodeURIComponent(data)}`;
 const initials = (email) => (email ? email.slice(0, 2).toUpperCase() : "FC");
+const formatBookingDate = (d) =>
+  d.toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "numeric" }).replace(".", "");
 
 /* ─── AUTH SCREEN (integrated) ─── */
 function AuthScreen() {
@@ -124,6 +126,22 @@ function AuthScreen() {
   const [error, setError] = useState("");
   const [info, setInfo] = useState("");
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
+
+  const handleGoogleLogin = async () => {
+    setError("");
+    setInfo("");
+    setGoogleLoading(true);
+    const { error: err } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: window.location.origin },
+    });
+    if (err) {
+      setError(err.message || "No se ha podido iniciar sesión con Google");
+      setGoogleLoading(false);
+    }
+    // en éxito, Supabase redirige a Google; no hay más que hacer aquí
+  };
 
   const handleSubmit = async () => {
     setError("");
@@ -299,6 +317,40 @@ function AuthScreen() {
           )}
         </button>
 
+        <div style={{ display: "flex", alignItems: "center", gap: 12, margin: "22px 0" }}>
+          <div style={{ flex: 1, height: 1, background: C.border }} />
+          <span style={{ fontSize: 12, color: C.slatePale }}>o continúa con</span>
+          <div style={{ flex: 1, height: 1, background: C.border }} />
+        </div>
+
+        <button
+          onClick={handleGoogleLogin}
+          disabled={googleLoading}
+          style={{
+            width: "100%",
+            padding: "14px",
+            background: C.white,
+            color: C.slate,
+            border: `1.5px solid ${C.border}`,
+            borderRadius: 12,
+            fontSize: 15,
+            fontWeight: 600,
+            cursor: googleLoading ? "wait" : "pointer",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 10,
+          }}
+        >
+          <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
+            <path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.9c1.7-1.57 2.7-3.88 2.7-6.62z" />
+            <path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.9-2.26c-.8.54-1.84.86-3.06.86-2.35 0-4.34-1.59-5.05-3.72H.94v2.33A9 9 0 0 0 9 18z" />
+            <path fill="#FBBC05" d="M3.95 10.7A5.4 5.4 0 0 1 3.67 9c0-.59.1-1.17.28-1.7V4.97H.94A9 9 0 0 0 0 9c0 1.45.35 2.83.94 4.03z" />
+            <path fill="#EA4335" d="M9 3.58c1.32 0 2.51.46 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0A9 9 0 0 0 .94 4.97L3.95 7.3C4.66 5.17 6.65 3.58 9 3.58z" />
+          </svg>
+          {googleLoading ? "Conectando..." : "Continuar con Google"}
+        </button>
+
         <div style={{ textAlign: "center", marginTop: 24 }}>
           {mode === "login" ? (
             <span style={{ fontSize: 14, color: C.slateLight }}>
@@ -429,7 +481,7 @@ function AirportPicker({ open, onSelect, onClose, title }) {
 
 /* ─── SCREENS ─── */
 
-function HomeScreen({ onNav, userEmail }) {
+function HomeScreen({ onNav, userEmail, bookings }) {
   return (
     <div style={{ paddingBottom: 100 }}>
       <div style={{ background: `linear-gradient(135deg, ${C.green} 0%, ${C.greenMid} 100%)`, padding: "48px 20px 40px", color: C.white }}>
@@ -455,18 +507,18 @@ function HomeScreen({ onNav, userEmail }) {
         </div>
       </div>
 
-      {BOOKINGS.length > 0 && (
+      {bookings.length > 0 && (
         <div style={{ padding: "20px 20px 0" }}>
           <div style={{ fontSize: 16, fontWeight: 700, color: C.slate, marginBottom: 12 }}>Tu próximo vuelo</div>
           <div style={{ background: C.white, borderRadius: 18, padding: 18, boxShadow: C.shadowSm, cursor: "pointer" }} onClick={() => onNav("bookings")}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
               <span style={{ fontSize: 12, fontWeight: 700, color: C.green, background: C.greenPale, padding: "4px 10px", borderRadius: 20 }}>Confirmado</span>
-              <span style={{ fontSize: 13, color: C.slateLight }}>{BOOKINGS[0].date}</span>
+              <span style={{ fontSize: 13, color: C.slateLight }}>{bookings[0].date}</span>
             </div>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <div style={{ textAlign: "center" }}>
-                <div style={{ fontSize: 28, fontWeight: 800, color: C.slate }}>{BOOKINGS[0].from}</div>
-                <div style={{ fontSize: 12, color: C.slateLight }}>{BOOKINGS[0].dep}</div>
+                <div style={{ fontSize: 28, fontWeight: 800, color: C.slate }}>{bookings[0].from}</div>
+                <div style={{ fontSize: 12, color: C.slateLight }}>{bookings[0].dep}</div>
               </div>
               <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", padding: "0 12px" }}>
                 <Plane size={18} style={{ color: C.green }} />
@@ -474,14 +526,14 @@ function HomeScreen({ onNav, userEmail }) {
                 <div style={{ fontSize: 11, color: C.slatePale }}>40min</div>
               </div>
               <div style={{ textAlign: "center" }}>
-                <div style={{ fontSize: 28, fontWeight: 800, color: C.slate }}>{BOOKINGS[0].to}</div>
-                <div style={{ fontSize: 12, color: C.slateLight }}>{BOOKINGS[0].arr}</div>
+                <div style={{ fontSize: 28, fontWeight: 800, color: C.slate }}>{bookings[0].to}</div>
+                <div style={{ fontSize: 12, color: C.slateLight }}>{bookings[0].arr}</div>
               </div>
             </div>
             <div style={{ display: "flex", justifyContent: "space-between", marginTop: 14, paddingTop: 14, borderTop: `1px solid ${C.border}`, fontSize: 13, color: C.slateLight }}>
-              <span>Puerta: <b style={{ color: C.slate }}>{BOOKINGS[0].gate}</b></span>
-              <span>Asiento: <b style={{ color: C.slate }}>{BOOKINGS[0].seat}</b></span>
-              <span>Ref: <b style={{ color: C.slate }}>{BOOKINGS[0].id}</b></span>
+              <span>Puerta: <b style={{ color: C.slate }}>{bookings[0].gate}</b></span>
+              <span>Asiento: <b style={{ color: C.slate }}>{bookings[0].seat}</b></span>
+              <span>Ref: <b style={{ color: C.slate }}>{bookings[0].id}</b></span>
             </div>
           </div>
         </div>
@@ -696,20 +748,42 @@ function SearchScreen({ onSelectFlight }) {
   );
 }
 
-function FlightDetail({ flight, onBack, onNav }) {
+function FlightDetail({ flight, onBack, onNav, onConfirmBooking }) {
   const [step, setStep] = useState(0);
   const [selectedSeat, setSelectedSeat] = useState(null);
+  const [confirmation, setConfirmation] = useState(null);
   const f = flight;
 
-  const seats = Array.from({ length: 24 }, (_, i) => {
-    const row = Math.floor(i / 4) + 1;
-    const col = ["A", "B", "C", "D"][i % 4];
-    const taken = Math.random() > 0.6;
-    return { id: `${row}${col}`, row, col, taken };
-  });
+  const seats = useMemo(
+    () =>
+      Array.from({ length: 24 }, (_, i) => {
+        const row = Math.floor(i / 4) + 1;
+        const col = ["A", "B", "C", "D"][i % 4];
+        const taken = Math.random() > 0.6;
+        return { id: `${row}${col}`, row, col, taken };
+      }),
+    [f.id]
+  );
 
-  if (step === 3) {
-    const ref = `FC-2026-${Math.floor(Math.random() * 9000 + 1000)}`;
+  const confirmBooking = () => {
+    const booking = {
+      id: `FC-2026-${Math.floor(Math.random() * 9000 + 1000)}`,
+      from: f.from,
+      to: f.to,
+      date: formatBookingDate(new Date()),
+      dep: f.dep,
+      arr: f.arr,
+      gate: `${["A", "B", "C"][f.id % 3]}${(f.id % 6) + 1}`,
+      seat: selectedSeat || "12A",
+      total: f.price + 12,
+      status: "confirmed",
+    };
+    setConfirmation(booking);
+    onConfirmBooking(booking);
+    setStep(3);
+  };
+
+  if (step === 3 && confirmation) {
     return (
       <div style={{ minHeight: "100dvh", background: C.white, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 32, textAlign: "center" }}>
         <div style={{ width: 80, height: 80, borderRadius: "50%", background: C.greenPale, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 24 }}>
@@ -722,15 +796,15 @@ function FlightDetail({ flight, onBack, onNav }) {
         <div style={{ background: C.bg, borderRadius: 16, padding: 20, width: "100%", maxWidth: 320, marginBottom: 24 }}>
           <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, marginBottom: 8 }}>
             <span style={{ color: C.slateLight }}>Referencia</span>
-            <span style={{ fontWeight: 700, color: C.slate }}>{ref}</span>
+            <span style={{ fontWeight: 700, color: C.slate }}>{confirmation.id}</span>
           </div>
           <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, marginBottom: 8 }}>
             <span style={{ color: C.slateLight }}>Asiento</span>
-            <span style={{ fontWeight: 700, color: C.slate }}>{selectedSeat || "12A"}</span>
+            <span style={{ fontWeight: 700, color: C.slate }}>{confirmation.seat}</span>
           </div>
           <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14 }}>
             <span style={{ color: C.slateLight }}>Total</span>
-            <span style={{ fontWeight: 700, color: C.green }}>{f.price}€</span>
+            <span style={{ fontWeight: 700, color: C.green }}>{confirmation.total}€</span>
           </div>
         </div>
         <button onClick={() => onNav("bookings")} style={{ padding: "16px 40px", background: C.green, color: C.white, border: "none", borderRadius: 12, fontSize: 16, fontWeight: 700, cursor: "pointer", boxShadow: C.shadowMd }}>
@@ -822,7 +896,7 @@ function FlightDetail({ flight, onBack, onNav }) {
                   const isSelected = selectedSeat === s.id;
                   return (
                     <>
-                      {s.col === "C" && s.row === seats.find((x) => x.col === "C")?.row && (
+                      {s.col === "C" && (
                         <div key={`gap-${s.row}`} style={{ display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, color: C.slatePale, fontWeight: 600 }}>
                           {s.row}
                         </div>
@@ -879,7 +953,7 @@ function FlightDetail({ flight, onBack, onNav }) {
             <div style={{ fontSize: 22, fontWeight: 800, color: C.green }}>{f.price + 12}€</div>
           </div>
           <button
-            onClick={() => setStep(Math.min(step + 1, 3))}
+            onClick={() => (step === 2 ? confirmBooking() : setStep(step + 1))}
             disabled={step === 1 && !selectedSeat}
             style={{ padding: "14px 32px", background: step === 1 && !selectedSeat ? C.slatePale : C.green, color: C.white, border: "none", borderRadius: 12, fontSize: 16, fontWeight: 700, cursor: step === 1 && !selectedSeat ? "not-allowed" : "pointer", display: "flex", alignItems: "center", gap: 8, boxShadow: C.shadowMd }}
           >
@@ -892,14 +966,14 @@ function FlightDetail({ flight, onBack, onNav }) {
   );
 }
 
-function BookingsScreen({ userEmail }) {
-  const b = BOOKINGS[0];
+function BookingsScreen({ userEmail, bookings }) {
   return (
     <div style={{ paddingBottom: 100 }}>
       <div style={{ padding: "48px 20px 20px" }}>
         <div style={{ fontSize: 22, fontWeight: 700, color: C.slate, marginBottom: 20 }}>Mis vuelos</div>
 
-        <div style={{ background: C.white, borderRadius: 22, overflow: "hidden", boxShadow: C.shadowLg }}>
+        {bookings.map((b) => (
+        <div key={b.id} style={{ background: C.white, borderRadius: 22, overflow: "hidden", boxShadow: C.shadowLg, marginBottom: 16 }}>
           <div style={{ background: `linear-gradient(135deg, ${C.green} 0%, ${C.greenMid} 100%)`, padding: "20px 20px 16px", color: C.white }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -963,6 +1037,7 @@ function BookingsScreen({ userEmail }) {
             </div>
           </div>
         </div>
+        ))}
       </div>
     </div>
   );
@@ -1050,6 +1125,7 @@ export default function FlyCanariasApp() {
   const [authLoading, setAuthLoading] = useState(true);
   const [screen, setScreen] = useState("home");
   const [selectedFlight, setSelectedFlight] = useState(null);
+  const [bookings, setBookings] = useState(INITIAL_BOOKINGS);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -1064,6 +1140,7 @@ export default function FlyCanariasApp() {
 
   const onNav = (s) => { setSelectedFlight(null); setScreen(s); };
   const onSelectFlight = (f) => { setSelectedFlight(f); setScreen("detail"); };
+  const onConfirmBooking = (booking) => setBookings((prev) => [booking, ...prev]);
   const onSignOut = async () => {
     await supabase.auth.signOut();
     setScreen("home");
@@ -1076,12 +1153,12 @@ export default function FlyCanariasApp() {
 
   return (
     <div style={{ fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", background: C.bg, minHeight: "100dvh", maxWidth: 480, margin: "0 auto", position: "relative", WebkitFontSmoothing: "antialiased" }}>
-      {screen === "home" && <HomeScreen onNav={onNav} userEmail={userEmail} />}
+      {screen === "home" && <HomeScreen onNav={onNav} userEmail={userEmail} bookings={bookings} />}
       {screen === "search" && <SearchScreen onNav={onNav} onSelectFlight={onSelectFlight} />}
       {screen === "detail" && selectedFlight && (
-        <FlightDetail flight={selectedFlight} onBack={() => setScreen("search")} onNav={onNav} />
+        <FlightDetail flight={selectedFlight} onBack={() => setScreen("search")} onNav={onNav} onConfirmBooking={onConfirmBooking} />
       )}
-      {screen === "bookings" && <BookingsScreen userEmail={userEmail} />}
+      {screen === "bookings" && <BookingsScreen userEmail={userEmail} bookings={bookings} />}
       {screen === "profile" && <ProfileScreen userEmail={userEmail} onSignOut={onSignOut} />}
 
       {screen !== "detail" && <BottomNav active={screen} onNav={onNav} />}
