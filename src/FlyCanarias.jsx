@@ -1919,6 +1919,45 @@ function NotificationsScreen({ onBack }) {
   );
 }
 
+/* ─── PERFIL: destinos favoritos ─── */
+function FavoritesScreen({ onBack, onNav }) {
+  const C = useTheme();
+  const [favorites, setFavorites] = useState(() => loadLS(LS_KEYS.favorites, []));
+  useEffect(() => { saveLS(LS_KEYS.favorites, favorites); }, [favorites]);
+  const toggleFav = (dest) => setFavorites((prev) => (prev.includes(dest) ? prev.filter((d) => d !== dest) : [...prev, dest]));
+
+  return (
+    <div style={{ paddingBottom: 100 }}>
+      <SubHeader title="Destinos favoritos" onBack={onBack} />
+      <div style={{ padding: 20 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+          {Object.keys(UNSPLASH).map((dest) => {
+            const isFav = favorites.includes(dest);
+            return (
+              <div
+                key={dest}
+                onClick={() => onNav("search")}
+                style={{ position: "relative", borderRadius: 18, overflow: "hidden", boxShadow: C.shadowSm, aspectRatio: "4 / 3", cursor: "pointer" }}
+              >
+                <div style={{ position: "absolute", inset: 0, backgroundImage: `url(${UNSPLASH[dest]})`, backgroundSize: "cover", backgroundPosition: "center" }} />
+                <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(0,0,0,0) 45%, rgba(0,0,0,.65) 100%)" }} />
+                <button
+                  onClick={(e) => { e.stopPropagation(); toggleFav(dest); }}
+                  aria-label={isFav ? "Quitar de favoritos" : "Añadir a favoritos"}
+                  style={{ position: "absolute", top: 8, right: 8, width: 36, height: 36, borderRadius: "50%", background: "rgba(0,0,0,.35)", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
+                >
+                  <Heart size={16} color={isFav ? "#E1584A" : "#FFFFFF"} fill={isFav ? "#E1584A" : "none"} />
+                </button>
+                <div style={{ position: "absolute", left: 12, right: 12, bottom: 10, color: "#FFFFFF", fontWeight: 800, fontSize: 15 }}>{dest}</div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function Splash() {
   const C = useTheme();
   return (
