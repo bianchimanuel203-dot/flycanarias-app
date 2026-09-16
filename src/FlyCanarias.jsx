@@ -1778,6 +1778,108 @@ function PersonalDataScreen({ onBack, userEmail }) {
   );
 }
 
+/* ─── PERFIL: métodos de pago ─── */
+function guessCardBrand(number) {
+  const n = number.replace(/\s/g, "");
+  if (n.startsWith("4")) return "Visa";
+  if (/^5[1-5]/.test(n)) return "Mastercard";
+  return "Tarjeta";
+}
+
+function PaymentMethodsScreen({ onBack }) {
+  const C = useTheme();
+  const [cards, setCards] = useState(() =>
+    loadLS(LS_KEYS.payments, [{ id: 1, brand: "Visa", last4: "4851", holder: "MANUEL BIANCHI", expiry: "09/28" }])
+  );
+  const [modalOpen, setModalOpen] = useState(false);
+  const [form, setForm] = useState({ number: "", holder: "", expiry: "", cvv: "" });
+
+  useEffect(() => { saveLS(LS_KEYS.payments, cards); }, [cards]);
+
+  const addCard = () => {
+    const clean = form.number.replace(/\s/g, "");
+    if (clean.length < 12 || !form.holder.trim() || !form.expiry.trim() || form.cvv.trim().length < 3) return;
+    setCards((prev) => [...prev, { id: Date.now(), brand: guessCardBrand(clean), last4: clean.slice(-4), holder: form.holder.toUpperCase(), expiry: form.expiry }]);
+    setForm({ number: "", holder: "", expiry: "", cvv: "" });
+    setModalOpen(false);
+  };
+
+  const removeCard = (id) => setCards((prev) => prev.filter((c) => c.id !== id));
+
+  return (
+    <div style={{ paddingBottom: 120 }}>
+      <SubHeader title="Métodos de pago" onBack={onBack} />
+      <div style={{ padding: 20 }}>
+        {cards.map((c) => (
+          <div key={c.id} style={{ background: C.surface, borderRadius: 16, padding: 18, boxShadow: C.shadowSm, marginBottom: 12, display: "flex", alignItems: "center", gap: 14 }}>
+            <div style={{ width: 44, height: 44, borderRadius: 10, background: C.greenPale, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <CreditCard size={20} color={C.green} />
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: C.slate }}>{c.brand} •••• {c.last4}</div>
+              <div style={{ fontSize: 12, color: C.slateLight }}>{c.holder} · Caduca {c.expiry}</div>
+            </div>
+            <button
+              onClick={() => removeCard(c.id)}
+              aria-label="Eliminar tarjeta"
+              style={{ width: 44, height: 44, background: "none", border: "none", cursor: "pointer", color: C.slatePale, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}
+            >
+              <X size={18} />
+            </button>
+          </div>
+        ))}
+
+        <button
+          onClick={() => setModalOpen(true)}
+          style={{ width: "100%", minHeight: 48, padding: "14px", background: C.surface, border: `1.5px dashed ${C.green}`, borderRadius: 12, color: C.green, fontSize: 15, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}
+        >
+          <CreditCard size={18} /> Añadir nueva tarjeta
+        </button>
+      </div>
+
+      {modalOpen && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.5)", zIndex: 200, display: "flex", alignItems: "flex-end", justifyContent: "center" }} onClick={() => setModalOpen(false)}>
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{ background: C.surface, borderRadius: "24px 24px 0 0", width: "100%", maxWidth: 480, padding: "24px 20px calc(24px + env(safe-area-inset-bottom, 0px))", boxShadow: C.shadowLg }}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+              <h3 style={{ margin: 0, fontSize: 18, color: C.slate }}>Nueva tarjeta</h3>
+              <button onClick={() => setModalOpen(false)} style={{ background: "none", border: "none", cursor: "pointer", color: C.slateLight }}>
+                <X size={22} />
+              </button>
+            </div>
+            <p style={{ fontSize: 12, color: C.slatePale, marginBottom: 16 }}>Simulado — no se procesan pagos reales.</p>
+            {[
+              { key: "number", label: "Número de tarjeta", placeholder: "1234 5678 9012 3456", inputMode: "numeric" },
+              { key: "holder", label: "Titular", placeholder: "NOMBRE APELLIDOS", inputMode: "text" },
+              { key: "expiry", label: "Caducidad", placeholder: "MM/AA", inputMode: "text" },
+              { key: "cvv", label: "CVV", placeholder: "123", inputMode: "numeric" },
+            ].map((f) => (
+              <div key={f.key} style={{ marginBottom: 12 }}>
+                <label style={{ fontSize: 13, fontWeight: 600, color: C.slate, display: "block", marginBottom: 6 }}>{f.label}</label>
+                <input
+                  value={form[f.key]}
+                  onChange={(e) => setForm((prev) => ({ ...prev, [f.key]: e.target.value }))}
+                  placeholder={f.placeholder}
+                  inputMode={f.inputMode}
+                  style={{ width: "100%", minHeight: 44, border: `1px solid ${C.border}`, background: C.bg, borderRadius: 12, padding: "12px 14px", fontSize: 16, color: C.slate, outline: "none" }}
+                />
+              </div>
+            ))}
+            <button
+              onClick={addCard}
+              style={{ width: "100%", minHeight: 48, padding: "14px", background: C.green, color: "#FFFFFF", border: "none", borderRadius: 12, fontSize: 16, fontWeight: 700, cursor: "pointer", marginTop: 8 }}
+            >
+              Guardar tarjeta
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function Splash() {
   const C = useTheme();
   return (
