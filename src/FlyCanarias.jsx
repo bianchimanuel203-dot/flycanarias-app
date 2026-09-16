@@ -2213,6 +2213,65 @@ function HelpScreen({ onBack }) {
   );
 }
 
+/* ─── PERFIL: configuración ─── */
+const DEFAULT_SETTINGS = { language: "es", currency: "EUR", darkMode: false, units: "kg", pushNotifications: true };
+
+function SettingsScreen({ onBack, settings, onChangeSettings }) {
+  const C = useTheme();
+  const update = (patch) => onChangeSettings((prev) => ({ ...prev, ...patch }));
+
+  return (
+    <div style={{ paddingBottom: 100 }}>
+      <SubHeader title="Configuración" onBack={onBack} />
+      <div style={{ padding: 20 }}>
+        <div style={{ background: C.surface, borderRadius: 18, padding: 18, boxShadow: C.shadowSm, marginBottom: 14 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: C.slate, marginBottom: 10 }}>Idioma</div>
+          <SegmentedControl
+            options={[{ value: "es", label: "Español" }, { value: "en", label: "English" }]}
+            value={settings.language}
+            onChange={(v) => update({ language: v })}
+          />
+        </div>
+
+        <div style={{ background: C.surface, borderRadius: 18, padding: 18, boxShadow: C.shadowSm, marginBottom: 14 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: C.slate, marginBottom: 10 }}>Moneda</div>
+          <SegmentedControl
+            options={[{ value: "EUR", label: "EUR" }, { value: "GBP", label: "GBP" }, { value: "USD", label: "USD" }]}
+            value={settings.currency}
+            onChange={(v) => update({ currency: v })}
+          />
+        </div>
+
+        <div style={{ background: C.surface, borderRadius: 18, padding: 18, boxShadow: C.shadowSm, marginBottom: 14 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: C.slate, marginBottom: 10 }}>Unidades de peso</div>
+          <SegmentedControl
+            options={[{ value: "kg", label: "Kilogramos" }, { value: "lb", label: "Libras" }]}
+            value={settings.units}
+            onChange={(v) => update({ units: v })}
+          />
+        </div>
+
+        <div style={{ background: C.surface, borderRadius: 18, boxShadow: C.shadowSm, overflow: "hidden" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 18px", minHeight: 44, borderBottom: `1px solid ${C.border}` }}>
+            <div>
+              <div style={{ fontSize: 14, fontWeight: 600, color: C.slate }}>Modo oscuro</div>
+              <div style={{ fontSize: 12, color: C.slateLight }}>Aplica a toda la app</div>
+            </div>
+            <Toggle on={settings.darkMode} onChange={() => update({ darkMode: !settings.darkMode })} />
+          </div>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 18px", minHeight: 44 }}>
+            <div>
+              <div style={{ fontSize: 14, fontWeight: 600, color: C.slate }}>Notificaciones push</div>
+              <div style={{ fontSize: 12, color: C.slateLight }}>Avisos en este dispositivo</div>
+            </div>
+            <Toggle on={settings.pushNotifications} onChange={() => update({ pushNotifications: !settings.pushNotifications })} />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function Splash() {
   const C = useTheme();
   return (
@@ -2224,14 +2283,18 @@ function Splash() {
   );
 }
 
+/* pantallas de Perfil: requieren sesión y muestran la pestaña "Perfil" activa en el bottom nav */
+const PROFILE_SUBSCREENS = ["personal", "payment", "notifications", "favorites", "security", "settings", "help"];
+
 /* ─── APP ─── */
 export default function FlyCanariasApp() {
   const [session, setSession] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [screen, setScreen] = useState("home");
   const [selectedFlight, setSelectedFlight] = useState(null);
-  const [bookings, setBookings] = useState(INITIAL_BOOKINGS);
+  const [bookings, setBookings] = useState(() => loadLS(LS_KEYS.bookings, INITIAL_BOOKINGS));
   const [authPrompt, setAuthPrompt] = useState(false);
+  const [settings, setSettings] = useState(() => loadLS(LS_KEYS.settings, DEFAULT_SETTINGS));
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -2249,6 +2312,14 @@ export default function FlyCanariasApp() {
     if (session) setAuthPrompt(false);
   }, [session]);
 
+  useEffect(() => { saveLS(LS_KEYS.bookings, bookings); }, [bookings]);
+  useEffect(() => { saveLS(LS_KEYS.settings, settings); }, [settings]);
+
+  // el modo oscuro tiñe también el scroll-overshoot fuera de la tarjeta de la app
+  useEffect(() => {
+    document.body.style.backgroundColor = settings.darkMode ? DARK.bg : LIGHT.bg;
+  }, [settings.darkMode]);
+
   const onNav = (s) => { setSelectedFlight(null); setScreen(s); };
   const onSelectFlight = (f) => { setSelectedFlight(f); setScreen("detail"); };
   const onConfirmBooking = (booking) => setBookings((prev) => [booking, ...prev]);
@@ -2257,39 +2328,57 @@ export default function FlyCanariasApp() {
     setScreen("home");
   };
 
+  const theme = settings.darkMode ? DARK : LIGHT;
+
   if (authLoading) return <Splash />;
 
-  // Home y Búsqueda son siempre accesibles sin sesión. "Mis reservas", "Check-in" y
-  // "Perfil" requieren cuenta porque muestran datos del usuario. La pantalla de detalle
-  // de vuelo (búsqueda de info, asiento) es libre; el login solo se pide al intentar
+  // Home y Búsqueda son siempre accesibles sin sesión. "Mis reservas", "Check-in" y las
+  // pantallas de Perfil requieren cuenta porque muestran datos del usuario. La pantalla
+  // de detalle de vuelo (info, asiento) es libre; el login solo se pide al intentar
   // reservar (ver onRequireAuth en FlightDetail).
-  const needsAuth = !session && ["bookings", "profile", "checkin"].includes(screen);
+  const needsAuth = !session && ["bookings", "profile", "checkin", ...PROFILE_SUBSCREENS].includes(screen);
   if (needsAuth || (authPrompt && !session)) {
-    return <AuthScreen onClose={() => { setAuthPrompt(false); onNav("home"); }} />;
+    return (
+      <ThemeContext.Provider value={theme}>
+        <AuthScreen onClose={() => { setAuthPrompt(false); onNav("home"); }} />
+      </ThemeContext.Provider>
+    );
   }
 
   const userEmail = session?.user?.email;
+  const backToProfile = () => onNav("profile");
+  const bottomNavActive = PROFILE_SUBSCREENS.includes(screen) ? "profile" : screen;
 
   return (
-    <div style={{ fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", background: C.bg, minHeight: "100dvh", maxWidth: 480, margin: "0 auto", position: "relative", WebkitFontSmoothing: "antialiased" }}>
-      {screen === "home" && <HomeScreen onNav={onNav} userEmail={userEmail} bookings={session ? bookings : []} />}
-      {screen === "search" && <SearchScreen onNav={onNav} onSelectFlight={onSelectFlight} userEmail={userEmail} />}
-      {screen === "detail" && selectedFlight && (
-        <FlightDetail
-          flight={selectedFlight}
-          onBack={() => setScreen("search")}
-          onNav={onNav}
-          onConfirmBooking={onConfirmBooking}
-          session={session}
-          onRequireAuth={() => setAuthPrompt(true)}
-        />
-      )}
-      {screen === "bookings" && <BookingsScreen onNav={onNav} userEmail={userEmail} bookings={bookings} />}
-      {screen === "checkin" && <CheckinScreen onNav={onNav} userEmail={userEmail} bookings={bookings} />}
-      {screen === "status" && <StatusScreen onNav={onNav} userEmail={userEmail} />}
-      {screen === "profile" && <ProfileScreen onNav={onNav} userEmail={userEmail} onSignOut={onSignOut} />}
+    <ThemeContext.Provider value={theme}>
+      <div style={{ fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", background: theme.bg, minHeight: "100dvh", maxWidth: 480, margin: "0 auto", position: "relative", WebkitFontSmoothing: "antialiased" }}>
+        {screen === "home" && <HomeScreen onNav={onNav} userEmail={userEmail} bookings={session ? bookings : []} />}
+        {screen === "search" && <SearchScreen onNav={onNav} onSelectFlight={onSelectFlight} userEmail={userEmail} />}
+        {screen === "detail" && selectedFlight && (
+          <FlightDetail
+            flight={selectedFlight}
+            onBack={() => setScreen("search")}
+            onNav={onNav}
+            onConfirmBooking={onConfirmBooking}
+            session={session}
+            onRequireAuth={() => setAuthPrompt(true)}
+          />
+        )}
+        {screen === "bookings" && <BookingsScreen onNav={onNav} userEmail={userEmail} bookings={bookings} />}
+        {screen === "checkin" && <CheckinScreen onNav={onNav} userEmail={userEmail} bookings={bookings} />}
+        {screen === "status" && <StatusScreen onNav={onNav} userEmail={userEmail} />}
+        {screen === "profile" && <ProfileScreen onNav={onNav} userEmail={userEmail} onSignOut={onSignOut} />}
 
-      {screen !== "detail" && <BottomNav active={screen} onNav={onNav} />}
-    </div>
+        {screen === "personal" && <PersonalDataScreen onBack={backToProfile} userEmail={userEmail} />}
+        {screen === "payment" && <PaymentMethodsScreen onBack={backToProfile} />}
+        {screen === "notifications" && <NotificationsScreen onBack={backToProfile} />}
+        {screen === "favorites" && <FavoritesScreen onBack={backToProfile} onNav={onNav} />}
+        {screen === "security" && <SecurityScreen onBack={backToProfile} userEmail={userEmail} session={session} onNav={onNav} />}
+        {screen === "settings" && <SettingsScreen onBack={backToProfile} settings={settings} onChangeSettings={setSettings} />}
+        {screen === "help" && <HelpScreen onBack={backToProfile} />}
+
+        {screen !== "detail" && <BottomNav active={bottomNavActive} onNav={onNav} />}
+      </div>
+    </ThemeContext.Provider>
   );
 }
