@@ -5,7 +5,7 @@ Instructions for any coding agent working in this project. Keep this file short:
 Context: docs/PRODUCT_REQUIREMENTS.md (what and why), docs/DESIGN_SYSTEM.md (how it looks), docs/ARCHITECTURE.md (how it is built). Read the one you need, not all.
 
 ## Stack
-React 18.3.1 with JSX, Vite 5.4.21, @supabase/supabase-js 2.116.0 (auth only), lucide-react 0.383.0, inline CSS-in-JS, no backend, no router (package-lock.json:1230, :1599, :1680, :1827; src/FlyCanarias.jsx:2293). Hosting: Vercel per README (README.md:30).
+React 18.3.1 with JSX, Vite 5.4.21, @supabase/supabase-js 2.116.0 (auth only), lucide-react 0.383.0, inline CSS-in-JS, no backend, no router (package-lock.json:1230, :1599, :1680, :1827; src/FlyCanarias.jsx:2304). Hosting: Vercel per README (README.md:30).
 
 ## Commands
 - Install: `npm install` (README.md:60)
@@ -16,7 +16,7 @@ React 18.3.1 with JSX, Vite 5.4.21, @supabase/supabase-js 2.116.0 (auth only), l
 - Env: copy `.env.example` to `.env.local` and set the names VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY (.env.example:1-2; README.md:61-62). Never print or copy values.
 
 ## Conventions
-- Screens switch by a `screen` string in state, not a router (src/FlyCanarias.jsx:2293, :2355-2378).
+- Screens switch by a `screen` string in state, not a router (src/FlyCanarias.jsx:2304, :2366-2389).
 - Colour tokens: `LIGHT` and `DARK` objects read through `ThemeContext` (src/FlyCanarias.jsx:40-83).
 - localStorage keys all start with `fc_` (src/FlyCanarias.jsx:86-94).
 - Almost all app code is in one 2384-line file: grep for a function name to get its line, then read only that range.

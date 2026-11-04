@@ -16,36 +16,37 @@
 
 ## Data
 All app data is hard-coded in the source or kept in browser storage. Nothing is read from or written to a database.
-- Airports: 8, hard-coded (src/FlyCanarias.jsx:120-129).
-- Flights: 7, hard-coded, with price, times, seat count and aircraft (src/FlyCanarias.jsx:131-139).
-- Promotions: 4, hard-coded (src/FlyCanarias.jsx:141-146).
-- Seat map: 24 seats generated in the browser when the seat step opens; not saved (src/FlyCanarias.jsx:1051-1058).
-- Extras: luggage, insurance and seat options with prices (src/FlyCanarias.jsx:197-210).
-- Booking object: id, from, to, date, dep, arr, gate, seat, luggage, insurance, premiumSeat, extrasTotal, total, status (src/FlyCanarias.jsx:1066-1081).
-- Booking reference: `FC-2026-` plus a 4-digit number, made in the browser (src/FlyCanarias.jsx:1067).
-- Browser storage keys (src/FlyCanarias.jsx:86-94; read and written at :1693-1926 and :2295-2316):
-  - fc_bookings: list of bookings; starts with one demo seed booking (src/FlyCanarias.jsx:148-160).
-  - fc_settings: language, currency, dark mode, units, push toggle (src/FlyCanarias.jsx:2217).
-  - fc_personal_data: personal data form values, including a profile photo (src/FlyCanarias.jsx:1691-1707).
-  - fc_payment_methods: saved payment method summary, without the full card number (src/FlyCanarias.jsx:1789-1797).
-  - fc_notifications: notification toggles (src/FlyCanarias.jsx:1893-1896).
-  - fc_favorite_destinations: favourite destinations (src/FlyCanarias.jsx:1923-1926).
+- Airports: 8, hard-coded (src/FlyCanarias.jsx:131-140).
+- Flights: 7, hard-coded, with price, times, seat count and aircraft (src/FlyCanarias.jsx:142-150).
+- Promotions: 4, hard-coded (src/FlyCanarias.jsx:152-157).
+- Seat map: 24 seats generated in the browser when the seat step opens; not saved (src/FlyCanarias.jsx:1062-1069).
+- Extras: luggage, insurance and seat options with prices (src/FlyCanarias.jsx:208-221).
+- Booking object: id, from, to, date, dep, arr, gate, seat, luggage, insurance, premiumSeat, extrasTotal, total, status (src/FlyCanarias.jsx:1077-1092).
+- Booking reference: `FC-2026-` plus a 4-digit number, made in the browser (src/FlyCanarias.jsx:1078).
+- Browser storage keys (src/FlyCanarias.jsx:86-94; read and written at :1704-1937 and :2306-2327):
+  - fc_bookings: list of bookings; starts with one demo seed booking (src/FlyCanarias.jsx:159-171).
+  - fc_settings: language, currency, dark mode, units, push toggle (src/FlyCanarias.jsx:2228).
+  - fc_personal_data: personal data form values, including a profile photo (src/FlyCanarias.jsx:1702-1718).
+  - fc_payment_methods: saved payment method summary, without the full card number (src/FlyCanarias.jsx:1800-1808).
+  - fc_notifications: notification toggles (src/FlyCanarias.jsx:1904-1907).
+  - fc_favorite_destinations: favourite destinations (src/FlyCanarias.jsx:1934-1937).
   - fc_dark_mode: defined but not read anywhere in the app (src/FlyCanarias.jsx:87).
-- Not saved, React state only: check-in done flags and help chat messages (src/FlyCanarias.jsx:1347, :1459, :2120).
-- Mock or simulated: flights, prices, seats, bookings, flight status, check-in, card payment, help chat (src/FlyCanarias.jsx:1852, :2123-2131).
+- Sign-out: signing out (profile, "sign out everywhere", and the "Cerrar sesión y borrar mis datos" button) removes fc_bookings, fc_personal_data, fc_payment_methods, fc_notifications and fc_favorite_destinations from this browser and reloads the page; fc_settings stays (src/FlyCanarias.jsx:112-120, :2009, :2014, :2339).
+- Not saved, React state only: check-in done flags and help chat messages (src/FlyCanarias.jsx:1358, :1470, :2131).
+- Mock or simulated: flights, prices, seats, bookings, flight status, check-in, card payment, help chat (src/FlyCanarias.jsx:1863, :2134-2142).
 
 ## Integrations
-- Supabase Auth: sign up, sign in, sign out, session read, auth state listener, password change (src/FlyCanarias.jsx:416-419, :1981-1983, :1996, :2300-2304).
-- Google sign-in button: the code calls Supabase OAuth (src/FlyCanarias.jsx:391-394), but the Google provider is not set up (answer from Manuel, 2026-11-03).
+- Supabase Auth: sign up, sign in, sign out, session read, auth state listener, password change (src/FlyCanarias.jsx:427-430, :1992-1994, :2007, :2311-2315).
+- Google sign-in button: the code calls Supabase OAuth (src/FlyCanarias.jsx:402-405), but the Google provider is not set up (answer from Manuel, 2026-11-03).
 - Supabase keys: env var names VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY, kept in `.env.local`, which is git-ignored (src/lib/supabaseClient.js:3-4; .env.example:1-2; .gitignore:4).
-- Unsplash: destination photos as CSS background images (src/FlyCanarias.jsx:112-117, :1942).
-- api.qrserver.com: QR image on the boarding pass, URL built from the boarding-pass data (src/FlyCanarias.jsx:168-169, :1408-1409).
+- Unsplash: destination photos as CSS background images (src/FlyCanarias.jsx:123-128, :1953).
+- api.qrserver.com: QR image on the boarding pass, URL built from the boarding-pass data (src/FlyCanarias.jsx:179-180, :1419-1420).
 - Google Fonts: Inter, weights 400-800 (index.html:10-15).
 
 ## Security
 - Secrets only in environment variables. `.env` and `.env.local` are git-ignored (.gitignore:3-4).
-- Auth: Supabase email and password; a Google OAuth button exists in the code but the provider is not set up (src/FlyCanarias.jsx:391-420).
-- Screens that need a session: bookings, check-in, profile and its sub-screens (src/FlyCanarias.jsx:2339-2346).
+- Auth: Supabase email and password; a Google OAuth button exists in the code but the provider is not set up (src/FlyCanarias.jsx:402-431).
+- Screens that need a session: bookings, check-in, profile and its sub-screens (src/FlyCanarias.jsx:2350-2357).
 - Known issues and hardening items for this project are kept outside this repo (JARVIS vault note for the project), not here.
 
 ## Diagram
@@ -78,3 +79,4 @@ Dated from git history. The commit messages record what changed, not always why.
 - 2026-09-16 (5c3962f): Profile > security screen.
 - 2026-09-16 (98052a8): Profile > help screen.
 - 2026-09-16 (2ec62f2): Profile > settings screen, global dark mode, navigation.
+- 2026-11-04 (94e9694): sign-out clears the data saved in the browser; the "Eliminar cuenta" button became "Cerrar sesión y borrar mis datos".
