@@ -107,6 +107,17 @@ function saveLS(key, value) {
     // almacenamiento no disponible (modo privado, cuota, etc.) — ignorar
   }
 }
+// Borra los datos de usuario de este dispositivo (se conservan solo las preferencias de apariencia)
+// y recarga la página para vaciar también el estado en memoria.
+function clearUserDataAndReload() {
+  try {
+    [LS_KEYS.personal, LS_KEYS.payments, LS_KEYS.notifications, LS_KEYS.favorites, LS_KEYS.bookings]
+      .forEach((key) => localStorage.removeItem(key));
+  } catch {
+    // almacenamiento no disponible — ignorar
+  }
+  window.location.reload();
+}
 
 /* ─── real Canary Islands photography (Unsplash) ─── */
 const UNSPLASH = {
@@ -1995,12 +2006,12 @@ function SecurityScreen({ onBack, userEmail, session, onNav }) {
     setGlobalLoading(true);
     await supabase.auth.signOut({ scope: "global" });
     setGlobalLoading(false);
-    onNav("home");
+    clearUserDataAndReload();
   };
 
   const deleteAccount = async () => {
     await supabase.auth.signOut();
-    onNav("home");
+    clearUserDataAndReload();
   };
 
   return (
@@ -2057,21 +2068,21 @@ function SecurityScreen({ onBack, userEmail, session, onNav }) {
           onClick={() => setConfirmDelete(true)}
           style={{ width: "100%", minHeight: 48, padding: "14px", background: C.coral, border: "none", borderRadius: 12, color: "#FFFFFF", fontSize: 15, fontWeight: 700, cursor: "pointer" }}
         >
-          Eliminar cuenta
+          Cerrar sesión y borrar mis datos
         </button>
 
         {confirmDelete && (
           <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.5)", zIndex: 200, display: "flex", alignItems: "flex-end", justifyContent: "center" }} onClick={() => setConfirmDelete(false)}>
             <div onClick={(e) => e.stopPropagation()} style={{ background: C.surface, borderRadius: "24px 24px 0 0", width: "100%", maxWidth: 480, padding: "24px 20px calc(24px + env(safe-area-inset-bottom, 0px))" }}>
-              <div style={{ fontSize: 17, fontWeight: 800, color: C.slate, marginBottom: 8 }}>¿Eliminar tu cuenta?</div>
+              <div style={{ fontSize: 17, fontWeight: 800, color: C.slate, marginBottom: 8 }}>¿Borrar tus datos de este dispositivo?</div>
               <p style={{ fontSize: 13, color: C.slateLight, marginBottom: 18 }}>
-                Se cerrará tu sesión y se registrará tu solicitud de baja. Un agente confirmará la eliminación definitiva de tus datos por email.
+                Se cerrará tu sesión y se borrarán de este dispositivo tus reservas, tarjetas, datos personales y favoritos.
               </p>
               <button
                 onClick={deleteAccount}
                 style={{ width: "100%", minHeight: 48, padding: "14px", background: C.coral, color: "#FFFFFF", border: "none", borderRadius: 12, fontSize: 15, fontWeight: 700, cursor: "pointer", marginBottom: 10 }}
               >
-                Sí, eliminar cuenta
+                Sí, borrar mis datos
               </button>
               <button
                 onClick={() => setConfirmDelete(false)}
@@ -2325,7 +2336,7 @@ export default function FlyCanariasApp() {
   const onConfirmBooking = (booking) => setBookings((prev) => [booking, ...prev]);
   const onSignOut = async () => {
     await supabase.auth.signOut();
-    setScreen("home");
+    clearUserDataAndReload();
   };
 
   const theme = settings.darkMode ? DARK : LIGHT;
